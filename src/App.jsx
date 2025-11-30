@@ -58,7 +58,7 @@ function App() {
   const [scanLimit, setScanLimit] = useState(20);
   const [sortKey, setSortKey] = useState('score');
   const [sortDir, setSortDir] = useState('desc');
-  const [selectedScannerStock, setSelectedScannerStock] = useState(null);
+  const [selectedScannerStocks, setSelectedScannerStocks] = useState([]); // Array of stocks for multiple tabs
   const [sentimentFilters, setSentimentFilters] = useState({ bullish: true, bearish: false, neutral: false });
   const [currentScanSymbol, setCurrentScanSymbol] = useState('');
   const [availableSymbols, setAvailableSymbols] = useState(FALLBACK_TICKERS);
@@ -444,85 +444,162 @@ function App() {
 
   // Main JSX return
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)" }}>
-      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "2rem" }}>
-        {/* Header */}
-        <div style={{ marginBottom: "2rem", textAlign: "center" }}>
-          <Logo />
-          <h1 style={{ fontSize: "2.5rem", fontWeight: 700, marginTop: "1rem", marginBottom: "0.5rem" }}>
-            Stock Sentiment Pro
-          </h1>
-          <p style={{ color: "var(--muted)", fontSize: "1.1rem" }}>
-            Technical analysis with 16 indicators & sentiment scoring
-          </p>
+    <div style={{ minHeight: "100vh", background: "var(--bg-gradient)", color: "var(--text)" }}>
+      {/* Hero Header */}
+      <div style={{ 
+        background: 'linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%)',
+        borderBottom: '1px solid var(--border)',
+        marginBottom: '2rem'
+      }}>
+        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "3rem 2rem 2rem" }}>
+          <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+            <div style={{ display: 'inline-block', marginBottom: '1rem' }}>
+              <Logo />
+            </div>
+            <h1 style={{ 
+              fontSize: "3.5rem", 
+              fontWeight: 800, 
+              margin: "0 0 0.75rem",
+              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              letterSpacing: '-0.02em'
+            }}>
+              Stock Sentiment Pro
+            </h1>
+            <p style={{ 
+              color: "var(--muted)", 
+              fontSize: "1.2rem",
+              maxWidth: '600px',
+              margin: '0 auto',
+              lineHeight: '1.6'
+            }}>
+              Advanced technical analysis powered by 16 indicators with AI-driven sentiment scoring
+            </p>
+          </div>
         </div>
+      </div>
+
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 2rem 2rem" }}>
 
         {/* Tabs */}
-        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ 
+          display: "flex", 
+          gap: "0.5rem", 
+          marginBottom: "2rem",
+          background: 'var(--panel-bg)',
+          padding: '0.5rem',
+          borderRadius: '1rem',
+          border: '1px solid var(--border)',
+          backdropFilter: 'blur(12px)'
+        }}>
           <button
             onClick={() => setActiveTab("analyze")}
             style={{
+              flex: 1,
               padding: "1rem 2rem",
-              background: "transparent",
+              background: activeTab === "analyze" ? "var(--gradient-primary)" : "transparent",
               border: "none",
-              color: activeTab === "analyze" ? "var(--primary)" : "var(--muted)",
+              color: activeTab === "analyze" ? "white" : "var(--muted)",
               fontSize: "1rem",
               fontWeight: 600,
               cursor: "pointer",
-              borderBottom: activeTab === "analyze" ? "3px solid var(--primary)" : "3px solid transparent",
-              transition: "all 0.3s ease",
+              borderRadius: '0.75rem',
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: activeTab === "analyze" ? "0 4px 12px var(--primary-glow)" : "none",
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== "analyze") {
+                e.currentTarget.style.background = "var(--card-hover)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== "analyze") {
+                e.currentTarget.style.background = "transparent";
+              }
             }}
           >
-            Analyze
+            📊 Analyze
           </button>
           <button
             onClick={() => setActiveTab("scanner")}
             style={{
+              flex: 1,
               padding: "1rem 2rem",
-              background: "transparent",
+              background: activeTab === "scanner" ? "var(--gradient-primary)" : "transparent",
               border: "none",
-              color: activeTab === "scanner" ? "var(--primary)" : "var(--muted)",
+              color: activeTab === "scanner" ? "white" : "var(--muted)",
               fontSize: "1rem",
               fontWeight: 600,
               cursor: "pointer",
-              borderBottom: activeTab === "scanner" ? "3px solid var(--primary)" : "3px solid transparent",
-              transition: "all 0.3s ease",
+              borderRadius: '0.75rem',
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: activeTab === "scanner" ? "0 4px 12px var(--primary-glow)" : "none",
+            }}
+            onMouseEnter={(e) => {
+              if (activeTab !== "scanner") {
+                e.currentTarget.style.background = "var(--card-hover)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeTab !== "scanner") {
+                e.currentTarget.style.background = "transparent";
+              }
             }}
           >
-            Scanner
+            🔍 Scanner
           </button>
-          {selectedScannerStock && (
+          {selectedScannerStocks.map((stock, index) => (
             <button
-              onClick={() => setActiveTab("scanner-detail")}
+              key={`scanner-detail-${stock.symbol}-${index}`}
+              onClick={() => setActiveTab(`scanner-detail-${stock.symbol}`)}
               style={{
+                flex: 0.8,
                 padding: "1rem 2rem",
-                background: "transparent",
+                background: activeTab === `scanner-detail-${stock.symbol}` ? "var(--gradient-info)" : "transparent",
                 border: "none",
-                color: activeTab === "scanner-detail" ? "var(--primary)" : "var(--muted)",
+                color: activeTab === `scanner-detail-${stock.symbol}` ? "white" : "var(--muted)",
                 fontSize: "1rem",
                 fontWeight: 600,
                 cursor: "pointer",
-                borderBottom: activeTab === "scanner-detail" ? "3px solid var(--primary)" : "3px solid transparent",
-                transition: "all 0.3s ease",
+                borderRadius: '0.75rem',
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                boxShadow: activeTab === `scanner-detail-${stock.symbol}` ? "0 4px 12px var(--primary-glow)" : "none",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "0.5rem",
               }}
+              onMouseEnter={(e) => {
+                if (activeTab !== `scanner-detail-${stock.symbol}`) {
+                  e.currentTarget.style.background = "var(--card-hover)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== `scanner-detail-${stock.symbol}`) {
+                  e.currentTarget.style.background = "transparent";
+                }
+              }}
             >
-              {selectedScannerStock.symbol}
+              📈 {stock.symbol}
               <span
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedScannerStock(null);
-                  setActiveTab("scanner");
+                  const newStocks = selectedScannerStocks.filter((_, i) => i !== index);
+                  setSelectedScannerStocks(newStocks);
+                  // If closing the active tab, switch to scanner
+                  if (activeTab === `scanner-detail-${stock.symbol}`) {
+                    setActiveTab("scanner");
+                  }
                 }}
                 style={{
-                  fontSize: "1.2rem",
+                  fontSize: "1.5rem",
                   lineHeight: "1",
                   opacity: 0.7,
                   transition: "opacity 0.2s",
                   cursor: "pointer",
+                  marginLeft: '0.25rem'
                 }}
                 onMouseOver={(e) => e.currentTarget.style.opacity = "1"}
                 onMouseOut={(e) => e.currentTarget.style.opacity = "0.7"}
@@ -530,7 +607,7 @@ function App() {
                 ×
               </span>
             </button>
-          )}
+          ))}
         </div>
 
         {/* Content */}
@@ -578,7 +655,7 @@ function App() {
               setSortDir={setSortDir}
               formatPrice={formatPrice}
               setActiveTab={setActiveTab}
-              setSelectedScannerStock={setSelectedScannerStock}
+              setSelectedScannerStocks={setSelectedScannerStocks}
               sentimentFilters={sentimentFilters}
               setSentimentFilters={setSentimentFilters}
               currentScanSymbol={currentScanSymbol}
@@ -588,15 +665,18 @@ function App() {
             />
           )}
 
-          {activeTab === "scanner-detail" && selectedScannerStock && (
-            <ScannerDetailTab
-              stock={selectedScannerStock}
-              formatPrice={formatPrice}
-              sentimentColor={sentimentColor}
-              scanTimeframe={scanTimeframe}
-              fetchCloses={fetchCloses}
-            />
-          )}
+          {selectedScannerStocks.map((stock, index) => (
+            activeTab === `scanner-detail-${stock.symbol}` && (
+              <ScannerDetailTab
+                key={`scanner-detail-content-${stock.symbol}-${index}`}
+                stock={stock}
+                formatPrice={formatPrice}
+                sentimentColor={sentimentColor}
+                scanTimeframe={scanTimeframe}
+                fetchCloses={fetchCloses}
+              />
+            )
+          ))}
         </div>
       </div>
     </div>
@@ -609,41 +689,74 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
   return (
     <div>
       {/* Search form */}
-      <div style={{ marginBottom: '1.5rem', padding: '1.5rem', borderRadius: '1rem', background: 'var(--panel-bg)', border: '1px solid var(--border)' }}>
-        <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>Analyze Stock</h3>
+      <div className="glass animate-fade-in" style={{ 
+        marginBottom: '1.5rem', 
+        padding: '2rem', 
+        borderRadius: '1.5rem',
+        boxShadow: 'var(--shadow-lg)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          <span style={{ fontSize: '1.5rem' }}>🎯</span>
+          <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Analyze Stock</h3>
+        </div>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ flex: '1 1 200px' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>Symbol</label>
+            <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Symbol
+            </label>
             <input
               type="text"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              placeholder="e.g., AAPL"
+              placeholder="e.g., AAPL, TSLA, NVDA"
               style={{
                 width: '100%',
-                padding: '0.75rem',
-                fontSize: '1rem',
-                borderRadius: '0.5rem',
+                padding: '1rem',
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                borderRadius: '0.75rem',
                 background: 'var(--card-bg)',
-                color: 'var(--text)',
-                border: '1px solid var(--border)'
+                color: 'var(--text-primary)',
+                border: '2px solid var(--border)',
+                transition: 'all 0.3s ease',
               }}
               onKeyDown={(e) => { if (e.key === 'Enter') analyzeStock(); }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--primary)';
+                e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border)';
+                e.target.style.boxShadow = 'none';
+              }}
             />
           </div>
           <div style={{ flex: '1 1 200px' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>Timeframe</label>
+            <label style={{ display: 'block', marginBottom: '0.75rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Timeframe
+            </label>
             <select
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
               style={{
                 width: '100%',
-                padding: '0.75rem',
+                padding: '1rem',
                 fontSize: '1rem',
-                borderRadius: '0.5rem',
+                fontWeight: 600,
+                borderRadius: '0.75rem',
                 background: 'var(--card-bg)',
-                color: 'var(--text)',
-                border: '1px solid var(--border)'
+                color: 'var(--text-primary)',
+                border: '2px solid var(--border)',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--primary)';
+                e.target.style.boxShadow = '0 0 0 3px var(--primary-glow)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border)';
+                e.target.style.boxShadow = 'none';
               }}
             >
               <option value="1m">1 min</option>
@@ -664,34 +777,61 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
             onClick={analyzeStock}
             disabled={loading}
             style={{
-              padding: '0.75rem 2rem',
-              fontSize: '1rem',
-              borderRadius: '9999px',
+              padding: '1rem 3rem',
+              fontSize: '1.1rem',
+              fontWeight: 700,
+              borderRadius: '0.75rem',
               border: 'none',
-              background: loading ? 'var(--muted)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: loading ? 'var(--muted)' : 'var(--gradient-primary)',
               color: 'white',
-              fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer',
-              boxShadow: loading ? 'none' : '0 4px 12px rgba(102, 126, 234, 0.4)',
-              transition: 'all 0.3s ease',
+              boxShadow: loading ? 'none' : '0 8px 16px var(--primary-glow)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 12px 24px var(--primary-glow)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 16px var(--primary-glow)';
+              }
             }}
           >
-            {loading ? 'Analyzing...' : 'Analyze'}
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="animate-pulse">⏳</span> Analyzing...
+              </span>
+            ) : (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                🚀 Analyze
+              </span>
+            )}
           </button>
         </div>
       </div>
 
       {/* Error message */}
       {error && (
-        <div style={{
-          padding: '1rem',
-          marginBottom: '1rem',
-          borderRadius: '0.5rem',
-          background: 'rgba(239, 68, 68, 0.1)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          color: '#ef4444'
+        <div className="animate-slide-in" style={{
+          padding: '1.25rem',
+          marginBottom: '1.5rem',
+          borderRadius: '1rem',
+          background: 'rgba(239, 68, 68, 0.15)',
+          border: '2px solid var(--danger)',
+          color: 'var(--text-primary)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          boxShadow: '0 4px 12px var(--danger-glow)'
         }}>
-          {error}
+          <span style={{ fontSize: '1.5rem' }}>⚠️</span>
+          <span style={{ fontWeight: 500 }}>{error}</span>
         </div>
       )}
 
@@ -701,189 +841,265 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
       {/* Analysis results */}
       {analysis && (
         <>
-          <div style={{
+          <div className="animate-fade-in" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '1.25rem',
-            marginBottom: '1.25rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '1.5rem'
           }}>
             {/* Left: indicators */}
-            <div
+            <div className="glass card-interactive"
               style={{
-                padding: "1.25rem",
-                borderRadius: "1rem",
-                background: 'var(--panel-bg)',
-                border: "1px solid rgba(45,212,191,0.12)",
+                padding: "1.75rem",
+                borderRadius: "1.5rem",
+                border: "2px solid rgba(59, 130, 246, 0.2)",
+                boxShadow: 'var(--shadow-lg)',
               }}
             >
-              <h2
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 600,
-                  marginBottom: "0.75rem",
-                }}
-              >
-                Technical Indicators
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>📊</span>
+                <h2
+                  style={{
+                    fontSize: "1.3rem",
+                    fontWeight: 700,
+                    margin: 0,
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  Technical Indicators
+                </h2>
+              </div>
               <div
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(2, 1fr)",
-                  gap: "1rem",
-                  fontSize: "0.9rem",
+                  gap: "1.25rem",
+                  fontSize: "0.95rem",
                 }}
               >
-                <div>
-                  <div style={{ color: "var(--muted)" }}>EMA 50</div>
-                  <div style={{ fontWeight: 600 }}>
+                <div style={{
+                  padding: '1rem',
+                  background: 'var(--card-bg)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>EMA 50</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                     {analysis.ema50 ? formatPrice(analysis.ema50) : "-"}
                   </div>
                 </div>
-                <div>
-                  <div style={{ color: "var(--muted)" }}>EMA 200</div>
-                  <div style={{ fontWeight: 600 }}>
+                <div style={{
+                  padding: '1rem',
+                  background: 'var(--card-bg)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>EMA 200</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                     {analysis.ema200 ? formatPrice(analysis.ema200) : "-"}
                   </div>
                 </div>
-                <div>
-                  <div style={{ color: "var(--muted)" }}>RSI (14)</div>
-                  <div style={{ fontWeight: 600 }}>
+                <div style={{
+                  padding: '1rem',
+                  background: 'var(--card-bg)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>RSI (14)</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: analysis.rsi > 70 ? 'var(--danger)' : analysis.rsi < 30 ? 'var(--accent)' : 'var(--text-primary)' }}>
                     {analysis.rsi ? analysis.rsi.toFixed(1) : "-"}
                   </div>
                 </div>
-                <div>
-                  <div style={{ color: "var(--muted)" }}>MACD</div>
-                  <div style={{ fontWeight: 600 }}>
+                <div style={{
+                  padding: '1rem',
+                  background: 'var(--card-bg)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>MACD</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                     {analysis.macd ? analysis.macd.toFixed(3) : "-"}
                   </div>
                 </div>
-                <div>
-                  <div style={{ color: "var(--muted)" }}>MACD Signal</div>
-                  <div style={{ fontWeight: 600 }}>
+                <div style={{
+                  padding: '1rem',
+                  background: 'var(--card-bg)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>MACD Signal</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                     {analysis.macdSignal ? analysis.macdSignal.toFixed(3) : "-"}
                   </div>
                 </div>
-                <div>
-                  <div style={{ color: "var(--muted)" }}>MACD Hist</div>
-                  <div style={{ fontWeight: 600 }}>
+                <div style={{
+                  padding: '1rem',
+                  background: 'var(--card-bg)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>MACD Hist</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                     {analysis.macdHist ? analysis.macdHist.toFixed(3) : "-"}
                   </div>
                 </div>
                 {analysis.adx != null && (
-                  <div>
-                    <div style={{ color: "var(--muted)" }}>ADX</div>
-                    <div style={{ fontWeight: 600 }}>
+                  <div style={{
+                    padding: '1rem',
+                    background: 'var(--card-bg)',
+                    borderRadius: '0.75rem',
+                    border: '1px solid var(--border-light)'
+                  }}>
+                    <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>ADX</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                       {analysis.adx.toFixed(1)}
-                      <span style={{ marginLeft: '0.25rem', fontSize: '0.7rem', color: analysis.adx > 25 ? 'var(--accent)' : 'var(--muted)' }}>
+                      <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', background: analysis.adx > 25 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.2)', color: analysis.adx > 25 ? 'var(--accent)' : 'var(--muted)', fontWeight: 600 }}>
                         {analysis.adx > 25 ? 'Strong' : 'Weak'}
                       </span>
                     </div>
                   </div>
                 )}
                 {analysis.mfi != null && (
-                  <div>
-                    <div style={{ color: "var(--muted)" }}>MFI</div>
-                    <div style={{ fontWeight: 600 }}>
+                  <div style={{
+                    padding: '1rem',
+                    background: 'var(--card-bg)',
+                    borderRadius: '0.75rem',
+                    border: '1px solid var(--border-light)'
+                  }}>
+                    <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>MFI</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                       {analysis.mfi.toFixed(1)}
-                      <span style={{ marginLeft: '0.25rem', fontSize: '0.7rem', color: analysis.mfi > 50 ? 'var(--accent)' : 'var(--danger)' }}>
+                      <span style={{ marginLeft: '0.5rem', fontSize: '1rem', color: analysis.mfi > 50 ? 'var(--accent)' : 'var(--danger)' }}>
                         {analysis.mfi > 50 ? '↑' : '↓'}
                       </span>
                     </div>
                   </div>
                 )}
                 {analysis.stochasticK != null && (
-                  <div>
-                    <div style={{ color: "var(--muted)" }}>Stochastic</div>
-                    <div style={{ fontWeight: 600 }}>
+                  <div style={{
+                    padding: '1rem',
+                    background: 'var(--card-bg)',
+                    borderRadius: '0.75rem',
+                    border: '1px solid var(--border-light)'
+                  }}>
+                    <div style={{ color: "var(--muted)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Stochastic</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>
                       K: {analysis.stochasticK.toFixed(1)}
-                      {analysis.stochasticD != null && <span style={{ marginLeft: '0.25rem' }}>D: {analysis.stochasticD.toFixed(1)}</span>}
+                      {analysis.stochasticD != null && <span style={{ marginLeft: '0.5rem', color: 'var(--muted)' }}>D: {analysis.stochasticD.toFixed(1)}</span>}
                     </div>
                   </div>
                 )}
-                <div>
-                  <div style={{ color: "var(--muted)" }}>Score</div>
-                  <div style={{ fontWeight: 600 }}>{analysis.score}</div>
+                <div style={{
+                  padding: '1rem',
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%)',
+                  borderRadius: '0.75rem',
+                  border: '2px solid var(--primary)',
+                  gridColumn: analysis.adx == null && analysis.mfi == null && analysis.stochasticK == null ? 'span 2' : 'auto'
+                }}>
+                  <div style={{ color: "var(--text-primary)", fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>Sentiment Score</div>
+                  <div style={{ fontWeight: 800, fontSize: '1.5rem', color: 'var(--text-primary)' }}>
+                    {analysis.score}
+                    <span style={{ fontSize: '0.9rem', marginLeft: '0.5rem', color: 'var(--muted)' }}>/16</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Right: sentiment & levels */}
-            <div
+            <div className="glass card-interactive"
               style={{
-                  padding: "1.25rem",
-                  borderRadius: "1rem",
-                  background: 'var(--panel-bg)',
-                  border: "1px solid rgba(45,212,191,0.12)",
+                  padding: "1.75rem",
+                  borderRadius: "1.5rem",
+                  border: "2px solid rgba(16, 185, 129, 0.2)",
+                  boxShadow: 'var(--shadow-lg)',
                 }}
             >
-              <h2
-                style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 600,
-                  marginBottom: "0.75rem",
-                }}
-              >
-                Sentiment & Levels
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>🎯</span>
+                <h2
+                  style={{
+                    fontSize: "1.3rem",
+                    fontWeight: 700,
+                    margin: 0,
+                    color: 'var(--text-primary)'
+                  }}
+                >
+                  Sentiment & Levels
+                </h2>
+              </div>
 
               <div
                 style={{
                   display: "flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  marginBottom: "1rem",
+                  flexDirection: "column",
+                  gap: "1rem",
+                  marginBottom: "1.5rem",
                 }}
               >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minWidth: "110px",
-                    padding: "0.4rem 0.8rem",
-                    borderRadius: "9999px",
-                    backgroundColor: sentimentColor(analysis.sentiment),
-                    border: "none",
-                    color: "white",
-                    fontWeight: 600,
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  {analysis.sentiment}
-                </span>
-                <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '1rem',
+                  borderRadius: '1rem',
+                  background: `${sentimentColor(analysis.sentiment)}15`,
+                  border: `2px solid ${sentimentColor(analysis.sentiment)}`,
+                  boxShadow: `0 4px 12px ${sentimentColor(analysis.sentiment)}40`
+                }}>
+                  <span
+                    style={{
+                      fontSize: '1.2rem',
+                      fontWeight: 800,
+                      color: sentimentColor(analysis.sentiment),
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em'
+                    }}
+                  >
+                    {analysis.sentiment}
+                  </span>
+                </div>
+                <p style={{ color: "var(--muted)", fontSize: "0.9rem", lineHeight: '1.6', margin: 0, textAlign: 'center' }}>
                   Based on trend (EMA), momentum (RSI+MACD+Stochastic), volume (OBV+MFI), volatility (Bollinger+ATR), trend strength (ADX), and support/resistance levels.
-                  Score range: -16 to +16. This is technical analysis only, not financial advice.
+                  Score range: -16 to +16.
                 </p>
               </div>
 
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
+                  gridTemplateColumns: "1fr",
                   gap: "1rem",
-                  fontSize: "0.9rem",
+                  fontSize: "0.95rem",
                 }}
               >
-                <div>
-                  <div style={{ color: "var(--muted)", marginBottom: "0.25rem" }}>
-                    Possible Buy Zone
+                <div style={{
+                  padding: '1.25rem',
+                  background: 'var(--card-bg)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ color: "var(--muted)", marginBottom: "0.75rem", fontWeight: 600, fontSize: '0.85rem' }}>
+                    💚 Possible Buy Zone
                   </div>
                   {analysis.buyZone ? (
-                    <div style={{ fontWeight: 600 }}>
-                      ${formatPrice(analysis.buyZone[0])}   $
-                      {formatPrice(analysis.buyZone[1])}
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--accent)' }}>
+                      ${formatPrice(analysis.buyZone[0])} - ${formatPrice(analysis.buyZone[1])}
                     </div>
                   ) : (
-                    <div style={{ fontWeight: 600 }}>Not suggested for longs</div>
+                    <div style={{ fontWeight: 600, color: 'var(--muted)' }}>Not suggested for longs</div>
                   )}
                 </div>
-                <div>
-                  <div style={{ color: "var(--muted)", marginBottom: "0.25rem" }}>
-                    Possible Sell Targets
+                <div style={{
+                  padding: '1.25rem',
+                  background: 'var(--card-bg)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--border-light)'
+                }}>
+                  <div style={{ color: "var(--muted)", marginBottom: "0.75rem", fontWeight: 600, fontSize: '0.85rem' }}>
+                    🎯 Possible Sell Targets
                   </div>
                   {analysis.sellTargets ? (
-                    <div style={{ fontWeight: 600 }}>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--warning)' }}>
                       {analysis.sellTargets.map((t, idx) => (
                         <span key={idx}>
                           ${formatPrice(t)}
@@ -892,7 +1108,7 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
                       ))}
                     </div>
                   ) : (
-                    <div style={{ fontWeight: 600 }}>No long targets suggested</div>
+                    <div style={{ fontWeight: 600, color: 'var(--muted)' }}>No long targets suggested</div>
                   )}
                 </div>
               </div>
@@ -1092,10 +1308,11 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
         )}
 
         {/* Charts block */}
-        {analysis && (
+        {analysis && symbol && (
           <div style={{ marginTop: '1.25rem' }}>
             <h3 style={{ color: 'var(--muted)', marginBottom: '0.5rem' }}>Chart</h3>
             <TradingViewChart 
+              key={`chart-${symbol}-${timeframe}`}
               symbol={symbol}
               interval={timeframe}
               theme="dark"
@@ -1122,7 +1339,7 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
 };
 
 // Scanner Tab Component  
-const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setScanResults, sortedResults, scanConcurrency, setScanConcurrency, scanRetries, setScanRetries, scanBackoffMs, setScanBackoffMs, scanTimeframe, setScanTimeframe, scanLimit, setScanLimit, scanTopMarketCaps, stopScanning, sortKey, setSortKey, sortDir, setSortDir, formatPrice, setActiveTab, setSelectedScannerStock, sentimentFilters, setSentimentFilters, currentScanSymbol, setCurrentScanSymbol, setAvailableSymbols, sentimentRowBackground }) => {
+const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setScanResults, sortedResults, scanConcurrency, setScanConcurrency, scanRetries, setScanRetries, scanBackoffMs, setScanBackoffMs, scanTimeframe, setScanTimeframe, scanLimit, setScanLimit, scanTopMarketCaps, stopScanning, sortKey, setSortKey, sortDir, setSortDir, formatPrice, setActiveTab, setSelectedScannerStocks, sentimentFilters, setSentimentFilters, currentScanSymbol, setCurrentScanSymbol, setAvailableSymbols, sentimentRowBackground }) => {
   
   const handleSymbolClick = (row) => {
     // Extract last values from arrays for display
@@ -1133,8 +1350,8 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
     const lastMacdSignal = row.macdSeries && row.macdSeries.signalLine && row.macdSeries.signalLine.length > 0 ? row.macdSeries.signalLine[row.macdSeries.signalLine.length - 1] : null;
     const lastMacdHist = row.macdSeries && row.macdSeries.hist && row.macdSeries.hist.length > 0 ? row.macdSeries.hist[row.macdSeries.hist.length - 1] : null;
     
-    // Store selected scanner stock
-    setSelectedScannerStock({
+    // Create stock object
+    const stockData = {
       symbol: row.symbol,
       sentiment: row.sentiment,
       score: row.score,
@@ -1159,9 +1376,21 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
       macd: lastMacd,
       macdSignal: lastMacdSignal,
       macdHist: lastMacdHist
+    };
+    
+    // Add to array if not already present (check by symbol)
+    setSelectedScannerStocks(prev => {
+      const exists = prev.some(s => s.symbol === stockData.symbol);
+      if (exists) {
+        // If already exists, just switch to that tab
+        return prev;
+      }
+      // Add new stock to the array
+      return [...prev, stockData];
     });
-    // Switch to Scanner Detail tab
-    setActiveTab('scanner-detail');
+    
+    // Switch to the new scanner detail tab
+    setActiveTab(`scanner-detail-${row.symbol}`);
   };
   
   return (
@@ -1724,6 +1953,19 @@ const ScannerDetailTab = ({ stock, formatPrice, sentimentColor, scanTimeframe, f
           </div>
         )}
       </div>
+
+      {/* Charts block */}
+      {v && v.symbol && (
+        <div style={{ marginTop: '1.25rem' }}>
+          <h3 style={{ color: 'var(--muted)', marginBottom: '0.5rem', fontSize: '1.1rem', fontWeight: 600 }}>Chart</h3>
+          <TradingViewChart 
+            key={`scanner-chart-${v.symbol}-${detailTf}`}
+            symbol={v.symbol}
+            interval={detailTf}
+            theme="dark"
+          />
+        </div>
+      )}
     </div>
   );
 };

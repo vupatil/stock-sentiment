@@ -1,0 +1,25 @@
+﻿import React, { useState } from "react";
+import { calculateEMA, calculateRSI, calculateMACD, calculateRSIArray, calculateMACDSeries, analyzeTechnicalSentiment, calculateVolumeMA, calculateOBV, calculateVWAP, calculateBollingerBands, calculateATR, findSwingLevels } from './lib/indicators';
+import TradingViewChart from './components/TradingViewChart';
+import Logo from './components/Logo';
+import symbols from './data/symbols.json';
+
+const FALLBACK_TICKERS = symbols;
+
+const INDICATOR_PARAMS = {
+  '1m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '2m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '3m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '4m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '5m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '10m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '15m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '30m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '60m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '1h': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '1d': { emaShort: 50, emaLong: 200, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 220 },
+  '1wk': { emaShort: 10, emaLong: 40, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 50 },
+  '1mo': { emaShort: 6, emaLong: 24, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 30 }
+};
+
+function App() {

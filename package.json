@@ -1,0 +1,28 @@
+{
+  "name": "stock-sentiment-yahoo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "test": "vitest",
+    "start-proxy": "if exist ..\\stock-data-proxy-server2 (cd ../stock-data-proxy-server2 && npm start) else (cd c:\\Project\\myproject\\stock-data-proxy-server && npm start)",
+    "proxy:dev": "if exist ..\\stock-data-proxy-server2 (cd ../stock-data-proxy-server2 && npm run dev) else (cd c:\\Project\\myproject\\stock-data-proxy-server && npm run dev)",
+    "dev:all": "concurrently --kill-others-on-fail -n \"proxy,frontend\" -c \"cyan,green\" \"npm run proxy:dev\" \"npm run dev\"",
+    "start:dev-bg": "powershell -ExecutionPolicy Bypass -File ./scripts/start-dev-servers.ps1",
+    "stop:dev-bg": "powershell -ExecutionPolicy Bypass -File ./scripts/stop-dev-servers.ps1",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^6.0.0"
+    ,"vitest": "^1.3.2",
+    "jsdom": "^22.0.0"
+    ,"concurrently": "^8.2.0",
+    "nodemon": "^3.1.0"
+  }
+}

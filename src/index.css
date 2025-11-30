@@ -1,0 +1,54 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  /* White theme */
+  --bg: #ffffff;
+  --panel-bg: #ffffff; /* all panels white */
+  --card-bg: #ffffff;
+  --text: #0f172a; /* strong dark text for good contrast */
+  --muted: #475569; /* slightly darker muted gray for better contrast on white */
+  --border: rgba(15, 23, 42, 0.06);
+  --primary: #2563eb; /* primary accent (blue) */
+  --accent: #16a34a; /* success/green accent */
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --danger-text: #4b0000;
+  --accent-bright: #22c55e;
+  --secondary: #06b6d4; /* teal/cyan */
+  --secondary-dark: #0891b2;
+  /* Chart strokes */
+  --stroke-price: #2563eb;
+  --stroke-ema50: #f59e0b;
+  --stroke-ema200: #10b981;
+  --stroke-rsi: #f97316;
+  --stroke-macd: #f59e0b;
+  --stroke-positive: #60a5fa;
+  --stroke-negative: #ef4444;
+  /* TradingView-ish chart tokens */
+  --chart-grid: rgba(15, 23, 42, 0.06);
+  --chart-grid-vertical: rgba(15, 23, 42, 0.04);
+  --chart-axis-label: #475569;
+  --chart-area-fill: rgba(37, 99, 235, 0.08);
+  --chart-price-stroke-strong: #1f78ff;
+  --chart-ema200-dash: 3 3;
+  --candle-up: #16a34a;
+  --candle-down: #ef4444;
+  --candle-border: rgba(0,0,0,0.08);
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Runtime error overlay style */
+#runtime-error-overlay {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+

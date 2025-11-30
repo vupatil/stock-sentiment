@@ -1,0 +1,161 @@
+Full Detailed Prompt for Generating Stock Sentiment Pro React Project
+=============================================================
+
+Use this entire block as a single prompt to ChatGPT or Gemini. You can prepend with: "You are an expert senior React + data visualization engineer." Do not truncate.
+
+---
+I want you to generate a production-ready React 18 + Vite single-page application named "Stock Sentiment Pro". It performs client-side technical analysis and includes a market scanner with concurrency, extended-hours pricing, and interactive multi-indicator charts using SVG (no heavyweight chart libraries unless strongly justified). Provide clean modular code, documentation, and tests.
+
+High-Level Requirements:
+- Stack: React 18, Vite, plain CSS (CSS variables), optional small utility libs only if justified.
+- Structure: src/ with components, lib/ for indicators & sentiment logic, data/ for symbols list (~850 US large-cap tickers), optional server/ (Express proxy).
+- No backend persistence; everything client-side except optional proxy for CORS.
+- Include README with setup, architecture, CORS notes, indicator formulas and sentiment scoring explanation.
+- Provide Vitest tests for indicator functions and sentiment scoring.
+
+Data Source:
+- Yahoo Finance public chart endpoint: https://query1.finance.yahoo.com/v8/finance/chart/{SYMBOL}?interval=...&range=...&includePrePost=true
+- Timeframes: 1m,2m,3m,4m,5m,10m,15m,30m,60m(1h),1d,1wk,1mo mapped to appropriate interval/range combos (intraday vs daily/weekly).
+- Must handle CORS: Provide toggle "Use CORS proxy (dev)":
+  - If enabled and local proxy URL exists (env VITE_LOCAL_PROXY_URL), call /yahoo on local proxy.
+  - Else fallback to public CORS proxy (e.g. https://api.allorigins.win/raw?url=...) ONLY for development.
+  - Direct fetch if no proxy chosen (warn about CORS).
+- Implement optional Express proxy (server/index.js) with Helmet, CORS (configurable origins), basic rate limit (e.g. 60 req/min), /yahoo endpoint.
+
+Symbols Universe:
+- Provide src/data/symbols.json with ~850 US-listed symbols (market cap > $10B). Use to drive scanner.
+- Reset scanning returns to start (AAPL first).
+
+Indicators (Pure Functions in src/lib/indicators.js):
+- EMA(period)
+- RSI(14) (Wilder method)
+- MACD (12,26,9) returning macdLine, signalLine, hist
+- Bollinger Bands (20,2): middle, upper, lower, percentB, bandwidth
+- ATR(14)
+- Volume MA(20)
+- OBV (cumulative)
+- VWAP (intraday typical price weighting)
+Design as pure, testable functions.
+
+Sentiment Scoring (src/lib/sentiment.js or indicators file):
+- Score range: -12 to +12 from four components:
+  - Trend (±4): price vs EMA200 (+2/-2), EMA50 vs EMA200 (+2/-2)
+  - Momentum (±4): RSI >60 (+2), RSI <40 (-2), MACD above signal (+1), MACD below (-1)
+  - Volume (±2): Volume > MA*1.2 (+1), OBV rising (+1)
+  - Volatility (±2): Bollinger percentB upper zone (+1), lower zone (-1)
+- Map total score:
+  - Strong Bullish (≥ +4)
+  - Bullish (+2 to +3)
+  - Neutral (-1 to +1)
+  - Bearish (-3 to -2)
+  - Strong Bearish (≤ -4)
+Return { score, sentiment, components: { trend, momentum, volume, volatility } }.
+
+Extended Hours:
+- Extract from Yahoo meta: regularMarketPrice, postMarketPrice, postMarketChangePercent, preMarketPrice, preMarketChangePercent (when present).
+- Display Pre-Market & Post-Market prices with +/- % color-coded (green/red). Hide if not present.
+
+UI Tabs:
+1. Analyze Stock
+   - Inputs: symbol, timeframe select, chart mode (candles/area), toggle "Use CORS proxy (dev)".
+   - Analyze button & Reset.
+   - Display: Latest regular price, Pre/Post market blocks, EMA50, EMA200, RSI, MACD, ATR, Bollinger width/percentB, Volume MA, OBV.
+   - Sentiment section: score, bucket name, colored badge, component breakdown cards.
+   - Chart panel with toggles: EMA50, EMA200, RSI, MACD, Bollinger Bands, VWAP, Volume, Volume MA, ATR, OBV.
+   - Adjustable chart height slider (300–1000px, default 500).
+
+2. Market Scanner
+   - Settings: Concurrency (default 6), Retries (default 2), Backoff ms (default 800), Timeframe, Results Limit (default 30), Sentiment filters (Bullish true by default, Bearish/Neutral false).
+   - Start Scan & Reset.
+   - Parallel scanning: queue from symbols list; workers shift from queue; stop at target results.
+   - Skeleton row while fetching; remove on error/skip.
+   - Table columns: Rank, Symbol, Sentiment, Score, Price, Buy Zone, Targets.
+   - Row background color by sentiment bucket.
+
+Color Palette:
+- Strong Bullish: text/badge #166534, row bg rgba(22,101,52,0.18)
+- Bullish: #22c55e, bg rgba(34,197,94,0.08)
+- Neutral: #94a3b8, bg rgba(148,163,184,0.06)
+- Bearish: #f87171, bg rgba(248,113,113,0.08)
+- Strong Bearish: #991b1b, bg rgba(153,27,27,0.18)
+- Candle up: #16a34a, candle down: #ef4444
+
+Interactive SVG Chart:
+- Candle mode: wick + body. Area mode: path + gradient fill.
+- Crosshair: vertical line + top label (detailed timestamp) + bottom label (compact timestamp).
+- Hover stats bar: time, OHLC (or close), EMA50/200, RSI, MACD (line/signal/hist), optionally percentB/bandwidth, ATR, VWAP, Volume & Volume MA.
+- Panning: drag horizontally; maintain bounds.
+- Optional wheel zoom (stub acceptable).
+- Bollinger fill: semi-transparent area between upper/lower.
+- MACD histogram: green/red bars.
+- Auto-scale toggle for main price pane.
+
+Performance & State:
+- Memoize visible slices (derived arrays) on scroll/zoom/timeframe.
+- Single computation per fetch; do not recompute indicators on each hover.
+- React hooks only.
+
+Scanner Concurrency:
+- Create array of async workers length concurrency.
+- Each worker loops while queue not empty and results < limit.
+- On symbol: fetch -> indicators -> sentiment -> filter -> push row.
+- Cancellation when target reached.
+
+Error Handling:
+- CORS warning if direct fetch likely blocked.
+- Skip symbol if insufficient bars (< timeframe min).
+- Skip & remove skeleton on 404 or sentiment error.
+- If zero results, show advisory.
+
+Configuration & Env:
+- .env.example with VITE_LOCAL_PROXY_URL.
+- Scripts: dev (vite), proxy, dev:all (concurrently), test (vitest).
+
+Testing:
+- Unit tests indicators: boundary conditions, flat arrays, minimal series length.
+- Sentiment tests: one scenario per bucket verifying component contributions.
+
+File Layout Suggestion:
+- src/
+  - App.jsx, main.jsx, index.css
+  - components/ChartPanel.jsx, ScannerTable.jsx, SentimentBadge.jsx, IndicatorToggles.jsx
+  - lib/indicators.js, sentiment.js, timeFormat.js, mathUtils.js, indicators.test.js, sentiment.test.js
+  - data/symbols.json
+  - hooks/useScanner.js, useAnalysis.js
+- server/index.js (+ package.json)
+
+Implementation Details:
+- Hide pre/post market blocks if values undefined.
+- Ensure chronological arrays before indicator calculations.
+- Unified fetch util with includePrePost=true.
+- Time formatting: short bottom label (HH:mm), detailed top (YYYY-MM-DD HH:mm) or locale string.
+- Resize listener adjusts chart width.
+
+Documentation (README):
+- Overview & Features
+- Architecture description
+- Indicator formulas & sentiment heuristics
+- CORS / proxy explanation
+- Dev & test commands
+- Roadmap (Phase 2: Stochastic, MFI, divergence; Phase 3: Ichimoku, Fibonacci, support/resistance)
+
+Deliverables:
+- Full project code
+- README
+- Passing tests
+- Explanation of assumptions
+
+Constraints:
+- No API keys needed; do not include secrets.
+- Keep code modular and readable; minimal but meaningful comments for complex math.
+
+After producing code, list assumptions. If ambiguity arises, choose a sensible default and document.
+---
+
+Compressed Short Prompt (optional alternative):
+Build a React 18 + Vite SPA "Stock Sentiment Pro" fetching Yahoo Finance (includePrePost=true) data, computing EMA50/200, RSI14, MACD(12,26,9), Bollinger(20,2), ATR14, Volume MA20, OBV, VWAP, and scoring sentiment (-12..+12 across Trend/Momentum/Volume/Volatility) mapped to Strong Bullish/Bullish/Neutral/Bearish/Strong Bearish with defined color palette. Provide Analyze tab (symbol/timeframe, extended-hours prices, indicator list, adjustable SVG candle/area chart with overlays, crosshair top+bottom time labels) and Market Scanner (concurrency workers, retries, Bullish-only default filter, limit, sentiment-colored rows). Include optional Express proxy with rate limiting & CORS, ~850 symbols JSON, pure indicator functions, Vitest tests, README documenting formulas, CORS strategy, roadmap. Return all source files, README, tests, and architectural explanation.
+
+Usage Advice:
+- For ChatGPT/Gemini: Paste full prompt. If length exceeds limits, request multipart generation (core, components, tests, README). Provide file path headers for clarity.
+
+End of Prompt.

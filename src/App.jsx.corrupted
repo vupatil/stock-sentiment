@@ -1,0 +1,2113 @@
+﻿import React, { useState } from "react";
+console.debug('App.jsx loaded');
+
+                color: activeTab === "scanner-detail" ? "var(--primary)" : "var(--muted)",
+                fontSize: "1rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                borderBottom: activeTab === "scanner-detail" ? "3px solid var(--primary)" : "3px solid transparent",
+                transition: "all 0.3s ease",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
+              }}
+            >
+              {selectedScannerStock.symbol}
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedScannerStock(null);
+                  setActiveTab("scanner");
+                }}
+                style={{
+                  fontSize: "1.2rem",
+                  lineHeight: "1",
+                  opacity: 0.7,
+                  transition: "opacity 0.2s",
+                  cursor: "pointer",
+                }}
+                onMouseOver={(e) => e.currentTarget.style.opacity = "1"}
+                onMouseOut={(e) => e.currentTarget.style.opacity = "0.7"}
+              >
+                ×
+              </span>
+            </button>
+          )}
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: "2rem" }}>
+          {activeTab === "analyze" && (
+            <AnalyzeTab
+              symbol={symbol}
+              setSymbol={setSymbol}
+              import React from "react";
+              console.debug('App.jsx loaded');
+              import { calculateEMA, calculateRSI, calculateMACD, calculateRSIArray, calculateMACDSeries, analyzeTechnicalSentiment, calculateVolumeMA, calculateOBV, calculateVWAP, calculateBollingerBands, calculateATR } from './lib/indicators';
+              import Logo from './components/Logo';
+
+              function App() {
+                return (
+                  <div>
+                    <h1>Stock Sentiment App</h1>
+                    {/* TODO: Add main UI here */}
+                  </div>
+                );
+              }
+
+              import React from "react";
+              console.debug('App.jsx loaded');
+              import { calculateEMA, calculateRSI, calculateMACD, calculateRSIArray, calculateMACDSeries, analyzeTechnicalSentiment, calculateVolumeMA, calculateOBV, calculateVWAP, calculateBollingerBands, calculateATR } from './lib/indicators';
+              import Logo from './components/Logo';
+
+              function App() {
+                return (
+                  <div>
+                    <h1>Stock Sentiment App</h1>
+                    {/* TODO: Add main UI here */}
+                  </div>
+                );
+              }
+
+              import React from "react";
+              console.debug('App.jsx loaded');
+              import { calculateEMA, calculateRSI, calculateMACD, calculateRSIArray, calculateMACDSeries, analyzeTechnicalSentiment, calculateVolumeMA, calculateOBV, calculateVWAP, calculateBollingerBands, calculateATR } from './lib/indicators';
+              import Logo from './components/Logo';
+
+              function App() {
+                return (
+                  <div>
+                    <h1>Stock Sentiment App</h1>
+                    {/* TODO: Add main UI here */}
+                  </div>
+                );
+              }
+
+              import React from "react";
+              console.debug('App.jsx loaded');
+              import { calculateEMA, calculateRSI, calculateMACD, calculateRSIArray, calculateMACDSeries, analyzeTechnicalSentiment, calculateVolumeMA, calculateOBV, calculateVWAP, calculateBollingerBands, calculateATR } from './lib/indicators';
+              import Logo from './components/Logo';
+
+              function App() {
+                return (
+                  <div>
+                    <h1>Stock Sentiment App</h1>
+                    {/* TODO: Add main UI here */}
+                  </div>
+                );
+              }
+
+              export default App;
+                    {analysis.rsi ? analysis.rsi.toFixed(1) : "-"}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: "var(--muted)" }}>MACD</div>
+                  <div style={{ fontWeight: 600 }}>
+                    {analysis.macd ? analysis.macd.toFixed(3) : "-"}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: "var(--muted)" }}>MACD Signal</div>
+                  <div style={{ fontWeight: 600 }}>
+                    {analysis.macdSignal ? analysis.macdSignal.toFixed(3) : "-"}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: "var(--muted)" }}>MACD Hist</div>
+                  <div style={{ fontWeight: 600 }}>
+                    {analysis.macdHist ? analysis.macdHist.toFixed(3) : "-"}
+                  </div>
+                </div>
+                {analysis.adx != null && (
+                  <div>
+                    <div style={{ color: "var(--muted)" }}>ADX</div>
+                    <div style={{ fontWeight: 600 }}>
+                      {analysis.adx.toFixed(1)}
+                      <span style={{ marginLeft: '0.25rem', fontSize: '0.7rem', color: analysis.adx > 25 ? 'var(--accent)' : 'var(--muted)' }}>
+                        {analysis.adx > 25 ? 'Strong' : 'Weak'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {analysis.mfi != null && (
+                  <div>
+                    <div style={{ color: "var(--muted)" }}>MFI</div>
+                    <div style={{ fontWeight: 600 }}>
+                      {analysis.mfi.toFixed(1)}
+                      <span style={{ marginLeft: '0.25rem', fontSize: '0.7rem', color: analysis.mfi > 50 ? 'var(--accent)' : 'var(--danger)' }}>
+                        {analysis.mfi > 50 ? '↑' : '↓'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {analysis.stochasticK != null && (
+                  <div>
+                    <div style={{ color: "var(--muted)" }}>Stochastic</div>
+                    <div style={{ fontWeight: 600 }}>
+                      K: {analysis.stochasticK.toFixed(1)}
+                      {analysis.stochasticD != null && <span style={{ marginLeft: '0.25rem' }}>D: {analysis.stochasticD.toFixed(1)}</span>}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <div style={{ color: "var(--muted)" }}>Score</div>
+                  <div style={{ fontWeight: 600 }}>{analysis.score}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: sentiment & levels */}
+            <div
+              style={{
+                  padding: "1.25rem",
+                  borderRadius: "1rem",
+                  background: 'var(--panel-bg)',
+                  border: "1px solid rgba(45,212,191,0.12)",
+                }}
+            >
+              <h2
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
+                  marginBottom: "0.75rem",
+                }}
+              >
+                Sentiment & Levels
+              </h2>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.75rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: "110px",
+                    padding: "0.4rem 0.8rem",
+                    borderRadius: "9999px",
+                    backgroundColor: sentimentColor(analysis.sentiment),
+                    border: "none",
+                    color: "white",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  {analysis.sentiment}
+                </span>
+                <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+                  Based on trend (EMA), momentum (RSI+MACD+Stochastic), volume (OBV+MFI), volatility (Bollinger+ATR), trend strength (ADX), and support/resistance levels.
+                  Score range: -16 to +16. This is technical analysis only, not financial advice.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "1rem",
+                  fontSize: "0.9rem",
+                }}
+              >
+                <div>
+                  <div style={{ color: "var(--muted)", marginBottom: "0.25rem" }}>
+                    Possible Buy Zone
+                  </div>
+                  {analysis.buyZone ? (
+                    <div style={{ fontWeight: 600 }}>
+                      ${formatPrice(analysis.buyZone[0])}   $
+                      {formatPrice(analysis.buyZone[1])}
+                    </div>
+                  ) : (
+                    <div style={{ fontWeight: 600 }}>Not suggested for longs</div>
+                  )}
+                </div>
+                <div>
+                  <div style={{ color: "var(--muted)", marginBottom: "0.25rem" }}>
+                    Possible Sell Targets
+                  </div>
+                  {analysis.sellTargets ? (
+                    <div style={{ fontWeight: 600 }}>
+                      {analysis.sellTargets.map((t, idx) => (
+                        <span key={idx}>
+                          ${formatPrice(t)}
+                          {idx < analysis.sellTargets.length - 1 ? " / " : ""}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ fontWeight: 600 }}>No long targets suggested</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Support & Resistance Levels */}
+              {(analysis.supportLevels?.length > 0 || analysis.resistanceLevels?.length > 0) && (
+                <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'var(--card-bg)', borderRadius: '0.5rem' }}>
+                  <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.9rem' }}>Key Levels</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.85rem' }}>
+                    {analysis.supportLevels?.length > 0 && (
+                      <div>
+                        <div style={{ color: 'var(--accent)', fontWeight: 600, marginBottom: '0.25rem' }}>Support</div>
+                        {analysis.supportLevels.map((level, idx) => (
+                          <div key={idx} style={{ color: 'var(--text)' }}>${formatPrice(level)}</div>
+                        ))}
+                      </div>
+                    )}
+                    {analysis.resistanceLevels?.length > 0 && (
+                      <div>
+                        <div style={{ color: 'var(--danger)', fontWeight: 600, marginBottom: '0.25rem' }}>Resistance</div>
+                        {analysis.resistanceLevels.map((level, idx) => (
+                          <div key={idx} style={{ color: 'var(--text)' }}>${formatPrice(level)}</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <p
+                style={{
+                  marginTop: "1rem",
+                  fontSize: "0.85rem",
+                  color: "var(--muted)",
+                  lineHeight: 1.5,
+                }}
+              >
+                {analysis.note}
+              </p>
+
+              <p
+                style={{
+                  marginTop: "0.75rem",
+                  fontSize: "0.8rem",
+                  color: "var(--muted)",
+                }}
+              >
+                Disclaimer: This tool is for educational purposes only and does not constitute
+                financial advice. Always do your own research and consider your risk tolerance.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Score Breakdown & Phase 1 Indicators */}
+        {analysis && analysis.scoreBreakdown && (
+          <div style={{ marginTop: '1.25rem', padding: '1.25rem', borderRadius: '1rem', background: 'var(--panel-bg)', border: '1px solid var(--border)' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Score Breakdown</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Trend</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 600, color: analysis.scoreBreakdown.trend >= 0 ? '#10b981' : '#ef4444' }}>
+                  {analysis.scoreBreakdown.trend > 0 ? '+' : ''}{analysis.scoreBreakdown.trend}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.25rem' }}>EMA alignment</div>
+              </div>
+              <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Momentum</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 600, color: analysis.scoreBreakdown.momentum >= 0 ? '#10b981' : '#ef4444' }}>
+                  {analysis.scoreBreakdown.momentum > 0 ? '+' : ''}{analysis.scoreBreakdown.momentum}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.25rem' }}>RSI + MACD</div>
+              </div>
+              <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Volume</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 600, color: analysis.scoreBreakdown.volume >= 0 ? '#10b981' : '#ef4444' }}>
+                  {analysis.scoreBreakdown.volume > 0 ? '+' : ''}{analysis.scoreBreakdown.volume}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.25rem' }}>Confirmation</div>
+              </div>
+              <div style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--card-bg)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Volatility</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 600, color: analysis.scoreBreakdown.volatility >= 0 ? '#10b981' : '#ef4444' }}>
+                  {analysis.scoreBreakdown.volatility > 0 ? '+' : ''}{analysis.scoreBreakdown.volatility}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.25rem' }}>Bollinger position</div>
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--card-bg)', border: '2px solid var(--border)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Total Score</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: analysis.score >= 4 ? '#10b981' : analysis.score >= 2 ? '#3b82f6' : analysis.score >= -1 ? '#8b5cf6' : analysis.score >= -3 ? '#f59e0b' : '#ef4444' }}>
+                {analysis.score > 0 ? '+' : ''}{analysis.score}
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.25rem' }}>Range: -12 to +12</div>
+            </div>
+          </div>
+        )}
+
+        {/* Phase 1 Indicators: Volume, Bollinger, ATR */}
+        {analysis && (analysis.volumeMA != null || analysis.bollingerUpper != null || analysis.atr != null) && (
+          <div style={{ marginTop: '1.25rem', padding: '1.25rem', borderRadius: '1rem', background: 'var(--panel-bg)', border: '1px solid var(--border)' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Volume & Volatility Analysis</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', fontSize: '0.9rem' }}>
+              {analysis.volumeMA != null && (
+                <div>
+                  <div style={{ color: 'var(--muted)', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600 }}>📊 Volume</div>
+                  <div style={{ marginBottom: '0.25rem' }}>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Current: </span>
+                    <span style={{ fontWeight: 600 }}>{analysis.currentVolume ? (analysis.currentVolume / 1000000).toFixed(2) + 'M' : 'N/A'}</span>
+                  </div>
+                  <div style={{ marginBottom: '0.25rem' }}>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>20-day Avg: </span>
+                    <span style={{ fontWeight: 600 }}>{(analysis.volumeMA / 1000000).toFixed(2)}M</span>
+                  </div>
+                  {analysis.currentVolume && analysis.volumeMA && (
+                    <div style={{ marginTop: '0.5rem', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', fontSize: '0.8rem' }}>
+                      {analysis.currentVolume > analysis.volumeMA * 1.5 ? (
+                        <span style={{ color: '#10b981' }}>🔥 High volume ({((analysis.currentVolume / analysis.volumeMA - 1) * 100).toFixed(0)}% above avg)</span>
+                      ) : analysis.currentVolume < analysis.volumeMA * 0.7 ? (
+                        <span style={{ color: '#f59e0b' }}>⚠️ Low volume ({((1 - analysis.currentVolume / analysis.volumeMA) * 100).toFixed(0)}% below avg)</span>
+                      ) : (
+                        <span style={{ color: 'var(--muted)' }}>Normal volume</span>
+                      )}
+                    </div>
+                  )}
+                  {analysis.obv != null && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                      OBV: {(analysis.obv / 1000000).toFixed(1)}M
+                    </div>
+                  )}
+                </div>
+              )}
+              {analysis.bollingerUpper != null && (
+                <div>
+                  <div style={{ color: 'var(--muted)', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600 }}>📈 Bollinger Bands</div>
+                  <div style={{ marginBottom: '0.25rem' }}>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Upper: </span>
+                    <span style={{ fontWeight: 600 }}>${formatPrice(analysis.bollingerUpper)}</span>
+                  </div>
+                  <div style={{ marginBottom: '0.25rem' }}>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Middle: </span>
+                    <span style={{ fontWeight: 600 }}>${formatPrice(analysis.bollingerMiddle)}</span>
+                  </div>
+                  <div style={{ marginBottom: '0.25rem' }}>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Lower: </span>
+                    <span style={{ fontWeight: 600 }}>${formatPrice(analysis.bollingerLower)}</span>
+                  </div>
+                  {analysis.bollingerPercentB != null && (
+                    <div style={{ marginTop: '0.5rem', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', fontSize: '0.8rem' }}>
+                      <div style={{ marginBottom: '0.25rem' }}>
+                        <span style={{ color: 'var(--muted)' }}>%B: </span>
+                        <span style={{ fontWeight: 600 }}>{(analysis.bollingerPercentB * 100).toFixed(1)}%</span>
+                      </div>
+                      {analysis.bollingerPercentB < 0.2 ? (
+                        <span style={{ color: '#10b981' }}>✅ Near lower band (potential support)</span>
+                      ) : analysis.bollingerPercentB > 0.8 ? (
+                        <span style={{ color: '#ef4444' }}>⚠️ Near upper band (potential resistance)</span>
+                      ) : (
+                        <span style={{ color: 'var(--muted)' }}>Middle range</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {analysis.atr != null && (
+                <div>
+                  <div style={{ color: 'var(--muted)', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 600 }}>📉 Average True Range</div>
+                  <div style={{ marginBottom: '0.25rem' }}>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>ATR (14): </span>
+                    <span style={{ fontWeight: 600 }}>${formatPrice(analysis.atr)}</span>
+                  </div>
+                  {analysis.atrPercent != null && (
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>Volatility: </span>
+                      <span style={{ fontWeight: 600 }}>{analysis.atrPercent.toFixed(2)}%</span>
+                    </div>
+                  )}
+                  {analysis.stopLoss != null && (
+                    <div style={{ marginTop: '0.5rem', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', fontSize: '0.8rem' }}>
+                      <div style={{ marginBottom: '0.25rem', color: 'var(--muted)' }}>Suggested Stop-Loss:</div>
+                      <div style={{ fontWeight: 600, color: '#ef4444' }}>${formatPrice(analysis.stopLoss)}</div>
+                      <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                        (2× ATR below current price)
+                      </div>
+                    </div>
+                  )}
+                  {analysis.vwap != null && (
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                      VWAP: ${formatPrice(analysis.vwap)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Charts block */}
+        {analysis && (
+          <div style={{ marginTop: '1.25rem' }}>
+            <h3 style={{ color: 'var(--muted)', marginBottom: '0.5rem' }}>Chart</h3>
+            <TradingViewChart 
+              symbol={symbol}
+              interval={timeframe}
+              theme="dark"
+            />
+          </div>
+        )}
+
+        {rawInfo && (
+          <details
+            style={{
+              marginTop: "0.5rem",
+              fontSize: "0.8rem",
+              color: "var(--muted)",
+            }}
+          >
+            <summary>Debug: Yahoo meta / error info</summary>
+            <pre style={{ whiteSpace: "pre-wrap" }}>
+              {JSON.stringify(rawInfo, null, 2)}
+            </pre>
+          </details>
+        )}
+      </div>
+  );
+};
+
+// Scanner Tab Component  
+const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setScanResults, sortedResults, scanConcurrency, setScanConcurrency, scanRetries, setScanRetries, scanBackoffMs, setScanBackoffMs, scanTimeframe, setScanTimeframe, scanLimit, setScanLimit, scanTopMarketCaps, stopScanning, sortKey, setSortKey, sortDir, setSortDir, formatPrice, setActiveTab, setSelectedScannerStock, sentimentFilters, setSentimentFilters, currentScanSymbol, setCurrentScanSymbol, setAvailableSymbols, sentimentRowBackground }) => {
+  
+  const handleSymbolClick = (row) => {
+    // Extract last values from arrays for display
+    const lastEma50 = row.ema50Arr && row.ema50Arr.length > 0 ? row.ema50Arr[row.ema50Arr.length - 1] : null;
+    const lastEma200 = row.ema200Arr && row.ema200Arr.length > 0 ? row.ema200Arr[row.ema200Arr.length - 1] : null;
+    const lastRsi = row.rsiArr && row.rsiArr.length > 0 ? row.rsiArr[row.rsiArr.length - 1] : null;
+    const lastMacd = row.macdSeries && row.macdSeries.macdLine && row.macdSeries.macdLine.length > 0 ? row.macdSeries.macdLine[row.macdSeries.macdLine.length - 1] : null;
+    const lastMacdSignal = row.macdSeries && row.macdSeries.signalLine && row.macdSeries.signalLine.length > 0 ? row.macdSeries.signalLine[row.macdSeries.signalLine.length - 1] : null;
+    const lastMacdHist = row.macdSeries && row.macdSeries.hist && row.macdSeries.hist.length > 0 ? row.macdSeries.hist[row.macdSeries.hist.length - 1] : null;
+    
+    // Store selected scanner stock
+    setSelectedScannerStock({
+      symbol: row.symbol,
+      sentiment: row.sentiment,
+      score: row.score,
+      latestPrice: row.latestPrice,
+      buyZone: row.buyZone,
+      sellTargets: row.sellTargets,
+      note: row.note,
+      closes: row.closes,
+      timestamps: row.timestamps,
+      opens: row.opens,
+      highs: row.highs,
+      lows: row.lows,
+      // Arrays for chart display
+      ema50Arr: row.ema50Arr,
+      ema200Arr: row.ema200Arr,
+      rsiArr: row.rsiArr,
+      macdSeries: row.macdSeries,
+      // Individual values for text display
+      ema50: lastEma50,
+      ema200: lastEma200,
+      rsi: lastRsi,
+      macd: lastMacd,
+      macdSignal: lastMacdSignal,
+      macdHist: lastMacdHist
+    });
+    // Switch to Scanner Detail tab
+    setActiveTab('scanner-detail');
+  };
+  
+  return (
+    <div>
+      <div style={{ marginBottom: '1.5rem', padding: '1.5rem', borderRadius: '1rem', background: 'var(--panel-bg)', border: '1px solid var(--border)' }}>
+        <h3 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1.1rem' }}>Scanner Settings</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>Concurrency:</label>
+            <input type='number' min='1' max='12' value={scanConcurrency} onChange={(e) => setScanConcurrency(Math.max(1, Math.min(12, Number(e.target.value))))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>Retries:</label>
+            <input type='number' min='0' max='6' value={scanRetries} onChange={(e) => setScanRetries(Math.max(0, Math.min(6, Number(e.target.value))))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>Backoff (ms):</label>
+            <input type='number' min='50' max='5000' value={scanBackoffMs} onChange={(e) => setScanBackoffMs(Math.max(50, Math.min(5000, Number(e.target.value))))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>Timeframe:</label>
+            <select value={scanTimeframe} onChange={(e) => setScanTimeframe(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', color: 'var(--text)', border: '1px solid var(--border)' }}>
+              <option value="1m">1 min</option>
+              <option value="2m">2 min</option>
+              <option value="3m">3 min</option>
+              <option value="4m">4 min</option>
+              <option value="5m">5 min</option>
+              <option value="10m">10 min</option>
+              <option value="15m">15 min</option>
+              <option value="30m">30 min</option>
+              <option value="60m">1 hour</option>
+              <option value="1d">1 day</option>
+              <option value="1wk">1 week</option>
+              <option value="1mo">1 month</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>Results Limit:</label>
+            <input type='number' min='1' max='100' value={scanLimit} onChange={(e) => setScanLimit(Math.max(1, Math.min(100, Number(e.target.value))))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
+          </div>
+        </div>
+        
+        <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+          <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>Filter by Sentiment:</label>
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input 
+                type='checkbox' 
+                checked={sentimentFilters.bullish} 
+                onChange={(e) => setSentimentFilters(prev => ({ ...prev, bullish: e.target.checked }))} 
+                style={{ cursor: 'pointer', width: '16px', height: '16px' }} 
+              />
+              <span style={{ color: '#10b981' }}>Bullish</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input 
+                type='checkbox' 
+                checked={sentimentFilters.bearish} 
+                onChange={(e) => setSentimentFilters(prev => ({ ...prev, bearish: e.target.checked }))} 
+                style={{ cursor: 'pointer', width: '16px', height: '16px' }} 
+              />
+              <span style={{ color: '#ef4444' }}>Bearish</span>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+              <input 
+                type='checkbox' 
+                checked={sentimentFilters.neutral} 
+                onChange={(e) => setSentimentFilters(prev => ({ ...prev, neutral: e.target.checked }))} 
+                style={{ cursor: 'pointer', width: '16px', height: '16px' }} 
+              />
+              <span style={{ color: 'var(--muted)' }}>Neutral</span>
+            </label>
+          </div>
+        </div>
+        
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            style={{
+              padding: "0.75rem 2rem",
+              borderRadius: "9999px",
+              border: "none",
+              background: scanning ? "var(--muted)" : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              color: "white",
+              fontWeight: 600,
+              cursor: scanning ? "not-allowed" : "pointer",
+              fontSize: "1rem",
+              boxShadow: scanning ? "none" : "0 4px 12px rgba(102, 126, 234, 0.4)",
+              transition: "all 0.3s ease",
+            }}
+            disabled={scanning}
+            onClick={scanTopMarketCaps}
+          >
+            {scanning ? `Scanning... ${scanProgress.done}/${scanProgress.total}` : 'Start Market Scan'}
+          </button>
+          
+          {scanning && (
+            <button
+              style={{
+                padding: "0.75rem 2rem",
+                borderRadius: "9999px",
+                border: "none",
+                background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                color: "white",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontSize: "1rem",
+                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.4)",
+                transition: "all 0.3s ease",
+              }}
+              onClick={stopScanning}
+            >
+              Stop Scanning
+            </button>
+          )}
+          
+          <button
+            style={{
+              padding: "0.75rem 2rem",
+              borderRadius: "9999px",
+              border: "1px solid var(--border)",
+              background: "var(--card-bg)",
+              color: "var(--text)",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontSize: "1rem",
+              transition: "all 0.3s ease",
+            }}
+            onClick={() => {
+              setScanResults([]);
+              setScanProgress({ done: 0, total: scanLimit });
+              // Reset filters to default (Bullish only) and restart from first symbol
+              setSentimentFilters({ bullish: true, bearish: false, neutral: false });
+              setCurrentScanSymbol('');
+              setAvailableSymbols(FALLBACK_TICKERS);
+            }}
+          >
+            Reset
+          </button>
+        </div>
+        
+        {scanning && currentScanSymbol && (
+          <div style={{ 
+            marginTop: '1rem', 
+            padding: '0.75rem 1rem', 
+            borderRadius: '0.5rem', 
+            background: 'var(--card-bg)', 
+            border: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontSize: '0.9rem'
+          }}>
+            <div style={{ 
+              width: '8px', 
+              height: '8px', 
+              borderRadius: '50%', 
+              background: '#667eea',
+              animation: 'pulse 1.5s ease-in-out infinite'
+            }} />
+            <span style={{ color: 'var(--muted)' }}>Currently scanning:</span>
+            <span style={{ color: 'var(--text)', fontWeight: 600 }}>{currentScanSymbol}</span>
+            <span style={{ color: 'var(--muted)', marginLeft: 'auto' }}>
+              ({scanProgress.done}/{scanProgress.total} found)
+            </span>
+          </div>
+        )}
+      </div>
+
+      {sortedResults.length > 0 && (
+        <div style={{ overflowX: 'auto', borderRadius: '1rem', background: 'var(--panel-bg)', border: '1px solid var(--border)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ background: 'var(--card-bg)', borderBottom: '2px solid var(--border)' }}>
+                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600, width: '60px' }}>#</th>
+                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, cursor: 'pointer' }} onClick={() => { setSortKey('symbol'); setSortDir(sortKey === 'symbol' && sortDir === 'asc' ? 'desc' : 'asc'); }}>
+                  Symbol {sortKey === 'symbol' && (sortDir === 'asc' ? ' ' : ' ')}
+                </th>
+                <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600, cursor: 'pointer' }} onClick={() => { setSortKey('latestPrice'); setSortDir(sortKey === 'latestPrice' && sortDir === 'asc' ? 'desc' : 'asc'); }}>
+                  Price {sortKey === 'latestPrice' && (sortDir === 'asc' ? ' ' : ' ')}
+                </th>
+                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 600, cursor: 'pointer' }} onClick={() => { setSortKey('sentiment'); setSortDir(sortKey === 'sentiment' && sortDir === 'asc' ? 'desc' : 'asc'); }}>
+                  Sentiment {sortKey === 'sentiment' && (sortDir === 'asc' ? ' ' : ' ')}
+                </th>
+                <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600, cursor: 'pointer' }} onClick={() => { setSortKey('score'); setSortDir(sortKey === 'score' && sortDir === 'asc' ? 'desc' : 'asc'); }}>
+                  Score {sortKey === 'score' && (sortDir === 'asc' ? ' ' : ' ')}
+                </th>
+                <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600 }}>Buy Zone</th>
+                <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600 }}>Targets</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedResults.map((row, idx) => {
+                // Determine row background color based on sentiment using sentimentRowBackground function
+                const rowBg = row.sentiment ? sentimentRowBackground(row.sentiment, row.error) : (idx % 2 === 0 ? 'var(--card-bg)' : 'transparent');
+                
+                return (
+                  <tr key={row.symbol} style={{ borderBottom: '1px solid var(--border)', background: rowBg, transition: 'background 0.2s' }}>
+                    <td style={{ padding: '1rem', textAlign: 'center', color: 'var(--muted)', fontSize: '0.85rem' }}>
+                      {idx + 1}
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span
+                          style={{ 
+                            fontWeight: 600, 
+                            color: 'var(--primary)', 
+                            cursor: 'pointer',
+                            transition: 'opacity 0.2s'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+                          onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                          onClick={() => handleSymbolClick(row)}
+                        >
+                          {row.symbol}
+                        </span>
+                        <a 
+                          href={`https://finance.yahoo.com/quote/${row.symbol}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ 
+                            fontSize: '0.75rem', 
+                            color: 'var(--accent)', 
+                            textDecoration: 'none',
+                            opacity: 0.7,
+                            transition: 'opacity 0.2s'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                          onMouseOut={(e) => e.currentTarget.style.opacity = '0.7'}
+                          onClick={(e) => e.stopPropagation()}
+                          title="View on Yahoo Finance"
+                        >
+                          Y
+                        </a>
+                        <a 
+                          href={`https://www.zacks.com/stock/quote/${row.symbol}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ 
+                            fontSize: '0.75rem', 
+                            color: '#4A90E2', 
+                            textDecoration: 'none',
+                            opacity: 0.7,
+                            transition: 'opacity 0.2s'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                          onMouseOut={(e) => e.currentTarget.style.opacity = '0.7'}
+                          onClick={(e) => e.stopPropagation()}
+                          title="View on Zacks"
+                        >
+                          Z
+                        </a>
+                      </div>
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'right' }}>{row.latestPrice ? formatPrice(row.latestPrice) : row.error || '-'}</td>
+                    <td style={{ padding: '1rem', color: row.sentiment === 'bullish' ? 'var(--accent)' : row.sentiment === 'bearish' ? 'var(--danger)' : 'var(--muted)' }}>
+                      {row.sentiment || '-'}
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 600 }}>{row.score != null ? row.score.toFixed(1) : '-'}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right', fontSize: '0.85rem' }}>
+                      {row.buyZone ? `${formatPrice(row.buyZone[0])} - ${formatPrice(row.buyZone[1])}` : '-'}
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'right', fontSize: '0.85rem' }}>
+                      {row.sellTargets && row.sellTargets.length > 0 ? row.sellTargets.map(t => formatPrice(t)).join(', ') : '-'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Scanner Detail Tab Component
+const ScannerDetailTab = ({ stock, formatPrice, sentimentColor, scanTimeframe, fetchCloses }) => {
+  const [detailTf, setDetailTf] = React.useState(scanTimeframe || '1d');
+  const [viewStock, setViewStock] = React.useState(stock);
+  const [loadingTf, setLoadingTf] = React.useState(false);
+  const fetchingRef = React.useRef(false); // Prevent concurrent fetches
+  const lastFetchRef = React.useRef(null); // Track last fetch params
+
+  const loadForTimeframe = React.useCallback(async (sym, tf) => {
+    const fetchKey = `${sym}-${tf}`;
+    
+    // Prevent concurrent fetches for the same symbol/timeframe
+    if (fetchingRef.current) {
+      console.log('⚠️ Already fetching, skipping duplicate request for', sym, tf);
+      return;
+    }
+    
+    // Prevent duplicate fetches if we just fetched this
+    if (lastFetchRef.current === fetchKey) {
+      console.log('⚠️ Already fetched', fetchKey, 'recently, skipping');
+      return;
+    }
+    
+    console.log('🔍 ScannerDetailTab loadForTimeframe called:', { sym, tf });
+    fetchingRef.current = true;
+    lastFetchRef.current = fetchKey;
+    
+    try {
+      setLoadingTf(true);
+      const { closes, combined, opens, highs, lows, volumes, regularMarketPrice, postMarketPrice, postMarketChangePercent, postMarketChange, preMarketPrice, preMarketChangePercent, preMarketChange } = await fetchCloses(sym, tf);
+      if (!closes || closes.length < 50) {
+        setViewStock((v) => ({ ...v, closes, timestamps: combined ? combined.map(p => p.ts) : null, opens, highs, lows, volumes }));
+        return;
+      }
+      const params = INDICATOR_PARAMS[tf] || INDICATOR_PARAMS['1d'];
+      const sentimentData = analyzeTechnicalSentiment(closes, params, volumes, highs, lows);
+      sentimentData.regularMarketPrice = regularMarketPrice;
+      sentimentData.postMarketPrice = postMarketPrice;
+      sentimentData.postMarketChangePercent = postMarketChangePercent;
+      sentimentData.postMarketChange = postMarketChange;
+      sentimentData.preMarketPrice = preMarketPrice;
+      sentimentData.preMarketChangePercent = preMarketChangePercent;
+      sentimentData.preMarketChange = preMarketChange;
+      const ema50Arr = calculateEMA(closes, params.emaShort);
+      const ema200Arr = calculateEMA(closes, params.emaLong);
+      const rsiArr = calculateRSIArray(closes, params.rsi);
+      const macdSeries = calculateMACDSeries(closes, params.macdFast, params.macdSlow, params.macdSignal);
+      
+      // Calculate Phase 1 indicator arrays for charts
+      const volumeMAArr = volumes ? calculateVolumeMA(volumes, 20) : null;
+      const obvArr = volumes ? calculateOBV(closes, volumes) : null;
+      const vwapArr = (volumes && highs && lows && combined) 
+        ? calculateVWAP(closes, highs, lows, volumes, combined.map(p => p.ts)) 
+        : null;
+      const bollingerBands = calculateBollingerBands(closes, 20, 2);
+      const atrArr = (highs && lows) ? calculateATR(highs, lows, closes, 14) : null;
+
+      const last = (arr) => (arr && arr.length ? arr[arr.length - 1] : null);
+      setViewStock((prevViewStock) => {
+        const newView = {
+          ...prevViewStock,
+          symbol: sym,
+          currentTf: tf, // Track the current timeframe to avoid refetching
+          ...sentimentData,
+          latestPrice: sentimentData.latestPrice,
+          closes,
+          timestamps: combined ? combined.map((p) => p.ts) : null,
+          opens,
+          highs,
+          lows,
+          volumes,
+          ema50Arr,
+          ema200Arr,
+          rsiArr,
+          macdSeries,
+          // Phase 1 arrays for charts
+          volumeMAArr,
+          obvArr,
+          vwapArr,
+          bollingerBands,
+          atrArr,
+          ema50: last(ema50Arr),
+          ema200: last(ema200Arr),
+          rsi: last(rsiArr),
+          macd: macdSeries && macdSeries.macdLine ? last(macdSeries.macdLine) : null,
+          macdSignal: macdSeries && macdSeries.signalLine ? last(macdSeries.signalLine) : null,
+          macdHist: macdSeries && macdSeries.hist ? last(macdSeries.hist) : null,
+        };
+        return newView;
+      });
+    } catch (e) {
+      // Keep previous data, optionally set an error note
+      setViewStock((v) => ({ ...v, note: (e && e.message) ? `Failed to load ${sym} ${tf}: ${e.message}` : v?.note }));
+    } finally {
+      setLoadingTf(false);
+      fetchingRef.current = false;
+    }
+  }, [fetchCloses]);
+
+  // Reset when a new stock is selected
+  React.useEffect(() => {
+    console.log('🔄 Stock symbol changed to:', stock?.symbol);
+    setDetailTf(scanTimeframe || '1d');
+    setViewStock(stock);
+  }, [stock?.symbol, scanTimeframe]);
+
+  // Load whenever timeframe or symbol changes
+  React.useEffect(() => {
+    console.log('🔄 ScannerDetailTab useEffect triggered:', { 
+      symbol: stock?.symbol, 
+      detailTf, 
+      viewStockSymbol: viewStock?.symbol, 
+      viewStockCurrentTf: viewStock?.currentTf,
+      shouldSkip: viewStock?.symbol === stock?.symbol && viewStock?.currentTf === detailTf
+    });
+    
+    if (!stock?.symbol || !detailTf) {
+      console.log('⏭️ Skipping: no symbol or timeframe');
+      return;
+    }
+    
+    // Avoid refetching if we're already showing the correct symbol and timeframe
+    if (viewStock?.symbol === stock?.symbol && viewStock?.currentTf === detailTf) {
+      console.log('⏭️ Skipping: already have data for', stock?.symbol, detailTf);
+      return;
+    }
+    
+    console.log('✅ Calling loadForTimeframe for', stock?.symbol, detailTf);
+    // If the provided stock already matches the requested timeframe (initial open), skip immediate refetch
+    // Otherwise, fetch the requested timeframe
+    loadForTimeframe(stock.symbol, detailTf);
+  }, [stock?.symbol, detailTf, viewStock?.symbol, viewStock?.currentTf]);
+
+  const v = viewStock || stock;
+
+  return (
+    <div>
+      <div style={{
+        marginBottom: '1.5rem',
+        padding: '1.5rem',
+        borderRadius: '1rem',
+        background: 'var(--panel-bg)',
+        border: '1px solid var(--border)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+              <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'var(--primary)' }}>
+                {v.symbol}
+              </h2>
+              <a 
+                href={`https://finance.yahoo.com/quote/${v.symbol}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ 
+                  fontSize: '0.9rem', 
+                  color: 'var(--accent)', 
+                  textDecoration: 'none',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '0.35rem',
+                  border: '1px solid var(--accent)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = 'white'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--accent)'; }}
+              >
+                Yahoo Finance ↗
+              </a>
+              <a 
+                href={`https://www.zacks.com/stock/quote/${v.symbol}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ 
+                  fontSize: '0.9rem', 
+                  color: '#4A90E2', 
+                  textDecoration: 'none',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '0.35rem',
+                  border: '1px solid #4A90E2',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#4A90E2'; e.currentTarget.style.color = 'white'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4A90E2'; }}
+              >
+                Zacks ↗
+              </a>
+              {/* Timeframe selector */}
+              <select
+                aria-label="timeframe"
+                value={detailTf}
+                onChange={(e) => setDetailTf(e.target.value)}
+                style={{ padding: '0.35rem 0.6rem', borderRadius: '9999px', border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--text)', fontSize: '0.9rem' }}
+              >
+                <option value="1m">1m</option>
+                <option value="2m">2m</option>
+                <option value="3m">3m</option>
+                <option value="4m">4m</option>
+                <option value="5m">5m</option>
+                <option value="10m">10m</option>
+                <option value="15m">15m</option>
+                <option value="30m">30m</option>
+                <option value="60m">1h</option>
+                <option value="1d">1d</option>
+                <option value="1wk">1wk</option>
+                <option value="1mo">1mo</option>
+              </select>
+              {loadingTf && <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Loading…</span>}
+            </div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text)' }}>
+              {v.latestPrice != null ? formatPrice(v.latestPrice) : '-'}
+            </div>
+          </div>
+          <div style={{
+            padding: '0.5rem 1rem',
+            borderRadius: '0.5rem',
+            background: sentimentColor(v.sentiment),
+            color: 'white',
+            fontWeight: 600
+          }}>
+            {v.sentiment}
+          </div>
+        </div>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: '1rem',
+          marginTop: '1rem'
+        }}>
+          <div>
+            <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>Score</div>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>
+              {v.score != null ? v.score.toFixed(1) : '-'}
+            </div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>EMA50</div>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>
+              {v.ema50 ? formatPrice(v.ema50) : '-'}
+            </div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>EMA200</div>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>
+              {v.ema200 ? formatPrice(v.ema200) : '-'}
+            </div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>RSI (14)</div>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>
+              {v.rsi ? v.rsi.toFixed(1) : '-'}
+            </div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>MACD</div>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>
+              {v.macd ? v.macd.toFixed(3) : '-'}
+            </div>
+          </div>
+          <div>
+            <div style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>MACD Signal</div>
+            <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>
+              {v.macdSignal ? v.macdSignal.toFixed(3) : '-'}
+            </div>
+          </div>
+        </div>
+
+        {v.buyZone && (
+          <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--card-bg)', borderRadius: '0.5rem' }}>
+            <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--accent)' }}>Buy Zone</div>
+            <div>{formatPrice(v.buyZone[0])} - {formatPrice(v.buyZone[1])}</div>
+          </div>
+        )}
+
+        {v.sellTargets && v.sellTargets.length > 0 && (
+          <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--card-bg)', borderRadius: '0.5rem' }}>
+            <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--accent)' }}>Sell Targets</div>
+            <div>{v.sellTargets.map(t => formatPrice(t)).join(', ')}</div>
+          </div>
+        )}
+
+        {v.note && (
+          <div style={{ marginTop: '1rem', padding: '1rem', background: 'var(--card-bg)', borderRadius: '0.5rem', fontSize: '0.9rem', color: 'var(--muted)' }}>
+            {v.note}
+          </div>
+        )}
+      </div>
+
+        {analysis && (
+          <div>
+            {getMarketClosedBanner(analysis)}
+            {/* ...existing code... */}
+          </div>
+  opens = [], 
+  highs = [], 
+  lows = [], 
+  volumes = [],
+  buyZone = null, 
+  sellTargets = null, 
+  ema50 = [], 
+  ema200 = [], 
+  rsi = [], 
+  macdSeries = null,
+  volumeMA = null,
+  obv = null,
+  vwap = null,
+  bollingerBands = null,
+  atr = null,
+  timeframe = '1d', 
+  chartMode = 'candles' 
+}) => {
+  const [mousePos, setMousePos] = React.useState(null);
+  const [hoveredIndex, setHoveredIndex] = React.useState(null);
+  const svgRef = React.useRef(null);
+  
+  // Chart controls state
+  const [zoomLevel, setZoomLevel] = React.useState(100); // percentage of data to show
+  const [scrollOffset, setScrollOffset] = React.useState(0); // how far scrolled
+  const [chartHeight, setChartHeight] = React.useState(500); // adjustable main chart height (default 500px)
+  const [showEMA50, setShowEMA50] = React.useState(true);
+  const [showEMA200, setShowEMA200] = React.useState(true);
+  const [showRSI, setShowRSI] = React.useState(true);
+  const [showMACD, setShowMACD] = React.useState(true);
+  const [showVolume, setShowVolume] = React.useState(true);
+  const [showBollinger, setShowBollinger] = React.useState(true);
+  const [showATR, setShowATR] = React.useState(false);
+  const [showOBV, setShowOBV] = React.useState(false);
+  const [showVWAP, setShowVWAP] = React.useState(false);
+  const [autoScale, setAutoScale] = React.useState(true);
+  
+  // Drag state for panning
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragStartX, setDragStartX] = React.useState(0);
+  const [dragStartOffset, setDragStartOffset] = React.useState(0);
+
+  const width = 900;
+  const priceHeight = chartHeight;
+  const rsiHeight = showRSI ? 100 : 0;
+  const macdHeight = showMACD ? 120 : 0;
+  const volumeHeight = showVolume && volumes && volumes.length > 0 ? 100 : 0;
+  const atrHeight = showATR && atr && atr.length > 0 ? 80 : 0;
+  const obvHeight = showOBV && obv && obv.length > 0 ? 100 : 0;
+  const totalHeight = priceHeight + rsiHeight + macdHeight + volumeHeight + atrHeight + obvHeight + 48;
+  
+  // Calculate visible data range based on zoom and scroll
+  const totalDataPoints = closes.length;
+  const visiblePoints = Math.max(20, Math.floor((totalDataPoints * zoomLevel) / 100));
+  const maxOffset = Math.max(0, totalDataPoints - visiblePoints);
+  const actualOffset = Math.min(scrollOffset, maxOffset);
+  const startIdx = actualOffset;
+  const endIdx = Math.min(startIdx + visiblePoints, totalDataPoints);
+  
+  // Memoize visible data calculations to prevent recalculation on mouse move
+  const visibleData = React.useMemo(() => {
+    const visibleCloses = closes.slice(startIdx, endIdx);
+    const visibleOpens = opens.slice(startIdx, endIdx);
+    const visibleHighs = highs.slice(startIdx, endIdx);
+    const visibleLows = lows.slice(startIdx, endIdx);
+    const visibleVolumes = volumes ? volumes.slice(startIdx, endIdx) : [];
+    const visibleEma50 = ema50.slice(startIdx, endIdx);
+    const visibleEma200 = ema200.slice(startIdx, endIdx);
+    const visibleRsi = rsi.slice(startIdx, endIdx);
+    const visibleTimestamps = timestamps.slice(startIdx, endIdx);
+    
+    // Phase 1 indicators
+    const visibleVolumeMA = volumeMA ? volumeMA.slice(startIdx, endIdx) : [];
+    const visibleOBV = obv ? obv.slice(startIdx, endIdx) : [];
+    const visibleVWAP = vwap ? vwap.slice(startIdx, endIdx) : [];
+    const visibleBBUpper = bollingerBands ? bollingerBands.upper.slice(startIdx, endIdx) : [];
+    const visibleBBMiddle = bollingerBands ? bollingerBands.middle.slice(startIdx, endIdx) : [];
+    const visibleBBLower = bollingerBands ? bollingerBands.lower.slice(startIdx, endIdx) : [];
+    const visibleATR = atr ? atr.slice(startIdx, endIdx) : [];
+    
+    const n = visibleCloses.length;
+    if (!n) return null;
+
+    // Price chart scales - include Bollinger Bands if shown
+    let vals = visibleCloses.concat(showEMA50 ? visibleEma50.filter(Boolean) : []).concat(showEMA200 ? visibleEma200.filter(Boolean) : []);
+    if (showBollinger && bollingerBands) {
+      vals = vals.concat(visibleBBUpper.filter(Boolean)).concat(visibleBBLower.filter(Boolean));
+    }
+    if (showVWAP && vwap) {
+      vals = vals.concat(visibleVWAP.filter(Boolean));
+    }
+    vals = vals.filter((v) => v != null);
+    const minV = Math.min(...vals);
+    const maxV = Math.max(...vals);
+    const pad = (maxV - minV) * 0.05 || 1;
+    
+    return {
+      visibleCloses,
+      visibleOpens,
+      visibleHighs,
+      visibleLows,
+      visibleVolumes,
+      visibleEma50,
+      visibleEma200,
+      visibleRsi,
+      visibleTimestamps,
+      visibleVolumeMA,
+      visibleOBV,
+      visibleVWAP,
+      visibleBBUpper,
+      visibleBBMiddle,
+      visibleBBLower,
+      visibleATR,
+      n,
+      minV,
+      maxV,
+      pad
+    };
+  }, [closes, opens, highs, lows, volumes, ema50, ema200, rsi, timestamps, volumeMA, obv, vwap, bollingerBands, atr, startIdx, endIdx, showEMA50, showEMA200, showBollinger, showVWAP]);
+  
+  if (!visibleData) return null;
+  
+  const { visibleCloses, visibleOpens, visibleHighs, visibleLows, visibleVolumes, visibleEma50, visibleEma200, visibleRsi, visibleTimestamps, visibleVolumeMA, visibleOBV, visibleVWAP, visibleBBUpper, visibleBBMiddle, visibleBBLower, visibleATR, n, minV, maxV, pad } = visibleData;
+  
+  const x = (i) => {
+    if (n <= 1) return width / 2; // Center single point
+    return (i / (n - 1)) * (width - 40) + 20;
+  };
+  const yPrice = (v) => priceHeight - ((v - (minV - pad)) / (maxV + pad - (minV - pad))) * (priceHeight - 20) + 10;
+
+  const pathFromArr = (arr, fnY) => {
+    let d = "";
+    for (let i = 0; i < arr.length; i++) {
+      const v = arr[i];
+      if (v == null) continue;
+      const xp = x(i);
+      const yp = fnY(v);
+      d += d === "" ? `M ${xp} ${yp}` : ` L ${xp} ${yp}`;
+    }
+    return d;
+  };
+
+  // Helper: find the most recent index where close is within a range
+  const findMostRecentInRange = (arr, low, high) => {
+    if (!arr || arr.length === 0) return -1;
+    for (let i = arr.length - 1; i >= 0; i--) {
+      const v = arr[i];
+      if (v != null && v >= low && v <= high) return i;
+    }
+    return -1;
+  };
+
+  // Helper: find closest index to a price
+  const findClosestIndex = (arr, price) => {
+    if (!arr || price == null || arr.length === 0) return -1;
+    let bestIdx = -1;
+    let bestDiff = Infinity;
+    for (let i = 0; i < arr.length; i++) {
+      const v = arr[i];
+      if (v == null) continue;
+      const d = Math.abs(v - price);
+      if (d < bestDiff) {
+        bestDiff = d;
+        bestIdx = i;
+      }
+    }
+    return bestIdx;
+  };
+
+  // RSI and MACD computed scales
+  const rsiMin = 0;
+  const rsiMax = 100; // RSI is typically 0-100; define to avoid ReferenceError
+  const rsiRange = (rsiMax - rsiMin) || 1; // safe fallback
+  const yRsi = (v) => {
+    // ensure numeric value and clamp
+    const num = (v == null || isNaN(Number(v))) ? rsiMin : Number(v);
+    const t = Math.max(rsiMin, Math.min(rsiMax, num));
+    return priceHeight + 10 + (1 - (t - rsiMin) / rsiRange) * (rsiHeight - 20) + 10;
+  };
+
+  const macdLine = macdSeries?.macdLine || [];
+  const signalLine = macdSeries?.signalLine || [];
+  const hist = macdSeries?.hist || [];
+  
+  // Slice MACD data to match visible range
+  const visibleMacdLine = macdLine.slice(startIdx, endIdx);
+  const visibleSignalLine = signalLine.slice(startIdx, endIdx);
+  const visibleHist = hist.slice(startIdx, endIdx);
+  
+  const macdVals = visibleMacdLine.concat(visibleSignalLine).concat(visibleHist).filter((v) => v != null);
+  const macdMax = Math.max(...macdVals, 0);
+  const macdMin = Math.min(...macdVals, 0);
+  const macdPad = Math.max( Math.abs(macdMax), Math.abs(macdMin) ) || 1;
+  const yMacd = (v) => priceHeight + rsiHeight + 10 + (1 - (v + macdPad) / (macdPad * 2)) * (macdHeight - 20) + 10;
+
+  // x-axis ticks
+  const tickIndices = [0, Math.floor(n / 4), Math.floor(n / 2), Math.floor((3 * n) / 4), n - 1];
+  const timeArr = (timestamps && timestamps.length === n) ? timestamps : Array.from({ length: n }, (_, i) => i);
+
+  // Mouse handlers for crosshair
+  const handleMouseMove = React.useCallback((e) => {
+    if (!svgRef.current) return;
+    
+    // Use SVG's built-in coordinate transformation
+    const svg = svgRef.current;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const svgX = svgP.x;
+    const svgY = svgP.y;
+    
+    // Find closest data point for data display
+    let closestIdx = -1;
+    let minDist = Infinity;
+    for (let i = 0; i < n; i++) {
+      const xp = x(i);
+      const dist = Math.abs(svgX - xp);
+      if (dist < minDist) {
+        minDist = dist;
+        closestIdx = i;
+      }
+    }
+    
+    if (closestIdx >= 0 && closestIdx < n) {
+      setHoveredIndex(closestIdx);
+      setMousePos({ x: svgX, y: svgY });
+    }
+  }, [n, x]);
+
+  const handleMouseLeave = React.useCallback(() => {
+    setMousePos(null);
+    setHoveredIndex(null);
+    setIsDragging(false);
+  }, []);
+
+  // Drag handlers for panning
+  const handleMouseDown = React.useCallback((e) => {
+    if (!svgRef.current) return;
+    
+    // Use SVG coordinate transformation
+    const svg = svgRef.current;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+    
+    setIsDragging(true);
+    setDragStartX(svgP.x); // Store SVG X coordinate
+    setDragStartOffset(scrollOffset);
+  }, [scrollOffset]);
+
+  const handleMouseUpGlobal = React.useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  React.useEffect(() => {
+    window.addEventListener('mouseup', handleMouseUpGlobal);
+    return () => window.removeEventListener('mouseup', handleMouseUpGlobal);
+  }, []);
+
+  const handleMouseMoveWithDrag = React.useCallback((e) => {
+    // Handle drag panning first
+    if (isDragging) {
+      if (!svgRef.current) return;
+      
+      // Use SVG coordinate transformation for consistent behavior
+      const svg = svgRef.current;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+      const currentSvgX = svgP.x;
+      
+      // Calculate delta in SVG coordinates
+      const deltaX = currentSvgX - dragStartX;
+      
+      // Convert pixel movement to data point movement
+      const pointsPerPixel = n / width;
+      const pointsDelta = Math.round(deltaX * pointsPerPixel);
+      
+      // Update scroll offset (drag right = scroll left, so negate)
+      const newOffset = Math.max(0, Math.min(maxOffset, dragStartOffset - pointsDelta));
+      setScrollOffset(newOffset);
+      
+      // Don't update crosshair while dragging
+      return;
+    }
+    
+    // Handle crosshair only when not dragging
+    handleMouseMove(e);
+  }, [isDragging, dragStartX, dragStartOffset, maxOffset, n, width, handleMouseMove]);
+
+  // Mouse wheel zoom handler - zoom at cursor position
+  const handleWheel = (e) => {
+    e.preventDefault();
+    if (!svgRef.current) return;
+    
+    const rect = svgRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const scaleX = width / rect.width;
+    const svgX = mouseX * scaleX;
+    
+    // Find the data point at cursor
+    let cursorDataIdx = -1;
+    let minDist = Infinity;
+    for (let i = 0; i < n; i++) {
+      const xp = x(i);
+      const dist = Math.abs(svgX - xp);
+      if (dist < minDist) {
+        minDist = dist;
+        cursorDataIdx = i;
+      }
+    }
+    
+    // Calculate the position in the full dataset
+    const fullDataIdx = startIdx + cursorDataIdx;
+    const relativePosition = fullDataIdx / totalDataPoints; // position as ratio (0-1)
+    
+    // Adjust zoom level
+    const delta = e.deltaY > 0 ? -5 : 5; // zoom out / zoom in
+    const newZoom = Math.max(10, Math.min(100, zoomLevel + delta));
+    
+    // Calculate new visible points and try to keep cursor position centered
+    const newVisiblePoints = Math.max(20, Math.floor((totalDataPoints * newZoom) / 100));
+    const newMaxOffset = Math.max(0, totalDataPoints - newVisiblePoints);
+    
+    // Try to maintain the same data point under the cursor
+    const targetOffset = Math.max(0, Math.min(newMaxOffset, fullDataIdx - Math.floor(cursorDataIdx * (newVisiblePoints / visiblePoints))));
+    
+    setZoomLevel(newZoom);
+    setScrollOffset(targetOffset);
+  };
+
+  // Format timestamp for display
+  const formatTime = (ts) => {
+    if (!ts) return '';
+    const date = new Date(ts * 1000);
+    
+    // Format based on timeframe
+    if (timeframe === '1m' || timeframe === '5m' || timeframe === '15m' || timeframe === '60m') {
+      // Intraday: show time
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } else if (timeframe === '1d') {
+      // Daily: show date
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } else {
+      // Weekly/Monthly: show date only
+      return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    }
+  };
+
+  const formatTimeDetailed = (ts) => {
+    if (!ts) return '';
+    const date = new Date(ts * 1000);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+  };
+
+  return (
+    <div>
+      {/* Chart Controls Panel */}
+      <div 
+        style={{ marginBottom: '1rem', padding: '1rem', borderRadius: '0.75rem', background: 'var(--panel-bg)', border: '1px solid var(--border)' }}
+        onWheel={(e) => e.stopPropagation()}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '0.75rem' }}>
+          {/* Zoom Control */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>
+              Zoom: {zoomLevel}% ({visiblePoints} points)
+            </label>
+            <input 
+              type="range" 
+              min="10" 
+              max="100" 
+              value={zoomLevel} 
+              onChange={(e) => setZoomLevel(Number(e.target.value))}
+              onWheel={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              style={{ width: '100%' }}
+            />
+          </div>
+          
+          {/* Scroll Control */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>
+              Scroll: {actualOffset} / {maxOffset}
+            </label>
+            <input 
+              type="range" 
+              min="0" 
+              max={maxOffset} 
+              value={actualOffset} 
+              onChange={(e) => setScrollOffset(Number(e.target.value))}
+              onWheel={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              style={{ width: '100%' }}
+              disabled={maxOffset === 0}
+            />
+          </div>
+          
+          {/* Chart Height Control */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>
+              Chart Height: {chartHeight}px
+            </label>
+            <input 
+              type="range" 
+              min="300" 
+              max="1000" 
+              value={chartHeight} 
+              onChange={(e) => setChartHeight(Number(e.target.value))}
+              onWheel={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+              style={{ width: '100%' }}
+            />
+          </div>
+        </div>
+        
+        {/* Symbol title with clickable link */}
+        {symbol && (
+          <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 600, color: 'var(--primary)' }}>{symbol}</h3>
+            <a 
+              href={`https://finance.yahoo.com/quote/${symbol}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ 
+                fontSize: '0.85rem', 
+                color: 'var(--accent)', 
+                textDecoration: 'none',
+                padding: '0.25rem 0.5rem',
+                borderRadius: '0.25rem',
+                border: '1px solid var(--accent)',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = 'white'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--accent)'; }}
+            >
+              Yahoo ↗
+            </a>
+            <a 
+              href={`https://www.zacks.com/stock/quote/${symbol}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ 
+                fontSize: '0.85rem', 
+                color: '#4A90E2', 
+                textDecoration: 'none',
+                padding: '0.25rem 0.5rem',
+                borderRadius: '0.25rem',
+                border: '1px solid #4A90E2',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = '#4A90E2'; e.currentTarget.style.color = 'white'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#4A90E2'; }}
+            >
+              Zacks ↗
+            </a>
+          </div>
+        )}
+        
+        {/* Indicator Toggles */}
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.85rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showEMA50} onChange={(e) => setShowEMA50(e.target.checked)} />
+            <span style={{ color: 'var(--stroke-ema50)' }}>EMA50</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showEMA200} onChange={(e) => setShowEMA200(e.target.checked)} />
+            <span style={{ color: 'var(--stroke-ema200)' }}>EMA200</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showRSI} onChange={(e) => setShowRSI(e.target.checked)} />
+            <span style={{ color: 'var(--stroke-rsi)' }}>RSI</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showMACD} onChange={(e) => setShowMACD(e.target.checked)} />
+            <span style={{ color: 'var(--stroke-macd)' }}>MACD</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showBollinger} onChange={(e) => setShowBollinger(e.target.checked)} />
+            <span style={{ color: '#a78bfa' }}>Bollinger</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showVWAP} onChange={(e) => setShowVWAP(e.target.checked)} />
+            <span style={{ color: '#14b8a6' }}>VWAP</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showVolume} onChange={(e) => setShowVolume(e.target.checked)} />
+            <span style={{ color: '#60a5fa' }}>Volume</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showATR} onChange={(e) => setShowATR(e.target.checked)} />
+            <span style={{ color: '#fb923c' }}>ATR</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showOBV} onChange={(e) => setShowOBV(e.target.checked)} />
+            <span style={{ color: '#a3e635' }}>OBV</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={autoScale} onChange={(e) => setAutoScale(e.target.checked)} />
+            <span style={{ color: 'var(--muted)' }}>Auto Scale</span>
+          </label>
+        </div>
+      </div>
+      
+      {/* Crosshair data display - always visible, shows hovered or latest data */}
+      <div style={{ marginBottom: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', background: 'var(--panel-bg)', border: '1px solid var(--border)', fontSize: '0.85rem', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+        {(() => {
+          const displayIndex = hoveredIndex !== null ? hoveredIndex : n - 1;
+          return (
+            <>
+              <span style={{ color: 'var(--text)' }}><strong>Time:</strong> {formatTimeDetailed(visibleTimestamps[displayIndex])}</span>
+              {chartMode === 'candles' && visibleOpens[displayIndex] != null && (
+                <>
+                  <span style={{ color: 'var(--text)' }}><strong>O:</strong> {visibleOpens[displayIndex].toFixed(2)}</span>
+                  <span style={{ color: 'var(--text)' }}><strong>H:</strong> {visibleHighs[displayIndex]?.toFixed(2) || '-'}</span>
+                  <span style={{ color: 'var(--text)' }}><strong>L:</strong> {visibleLows[displayIndex]?.toFixed(2) || '-'}</span>
+                  <span style={{ color: 'var(--text)' }}><strong>C:</strong> {visibleCloses[displayIndex].toFixed(2)}</span>
+                </>
+              )}
+              {chartMode !== 'candles' && (
+                <span style={{ color: 'var(--text)' }}><strong>Close:</strong> {visibleCloses[displayIndex].toFixed(2)}</span>
+              )}
+              {showEMA50 && visibleEma50[displayIndex] != null && <span style={{ color: 'var(--stroke-ema50)' }}><strong>EMA50:</strong> {visibleEma50[displayIndex].toFixed(2)}</span>}
+              {showEMA200 && visibleEma200[displayIndex] != null && <span style={{ color: 'var(--stroke-ema200)' }}><strong>EMA200:</strong> {visibleEma200[displayIndex].toFixed(2)}</span>}
+              {showRSI && visibleRsi[displayIndex] != null && <span style={{ color: 'var(--stroke-rsi)' }}><strong>RSI:</strong> {visibleRsi[displayIndex].toFixed(2)}</span>}
+              {showMACD && visibleMacdLine[displayIndex] != null && <span style={{ color: 'var(--stroke-macd)' }}><strong>MACD:</strong> {visibleMacdLine[displayIndex].toFixed(3)}</span>}
+              {showMACD && visibleSignalLine[displayIndex] != null && <span style={{ color: 'var(--stroke-positive)' }}><strong>Signal:</strong> {visibleSignalLine[displayIndex].toFixed(3)}</span>}
+              {showMACD && visibleHist[displayIndex] != null && <span style={{ color: visibleHist[displayIndex] >= 0 ? 'var(--accent)' : 'var(--stroke-negative)' }}><strong>Hist:</strong> {visibleHist[displayIndex].toFixed(3)}</span>}
+            </>
+          );
+        })()}
+      </div>
+      <div style={{ marginBottom: '0.35rem', color: 'var(--muted)', fontSize: '0.85rem' }}>
+        Timeframe: {timeframe}   Points: {n}   Mode: <strong style={{ color: 'var(--muted)' }}>{chartMode}</strong>
+        {chartMode === 'candles' && (
+          <span style={{ marginLeft: '0.5rem', color: 'var(--muted)' }}>OHLC: opens={opens?.length || 0}, highs={highs?.length || 0}, lows={lows?.length || 0}</span>
+        )}
+      </div>
+      <svg 
+        ref={svgRef}
+        viewBox={`0 0 ${width} ${totalHeight}`} 
+        width="100%" 
+        height={totalHeight}
+        onMouseMove={handleMouseMoveWithDrag}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onWheel={handleWheel}
+        style={{ cursor: isDragging ? 'grabbing' : 'grab', userSelect: 'none' }}
+      >
+      <defs>
+        <linearGradient id="priceAreaGradient" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--chart-price-stroke-strong)" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="var(--chart-area-fill)" stopOpacity="0.04" />
+        </linearGradient>
+      </defs>
+      {/* Price area: background */}
+      <rect x={0} y={0} width={width} height={priceHeight} fill="var(--panel-bg)" opacity={1} rx={8} pointerEvents="none" />
+      {/* Grid: horizontal lines */}
+      {(() => {
+        const lines = [];
+        const gridCount = 4;
+        for (let i = 0; i <= gridCount; i++) {
+          const t = i / gridCount;
+          const val = minV + (maxV - minV) * (1 - t);
+          const y = yPrice(val);
+          lines.push(<line key={`hgrid-${i}`} x1={20} x2={width - 20} y1={y} y2={y} stroke="var(--chart-grid)" strokeWidth={1} />);
+        }
+        return lines;
+      })()}
+      {/* Grid: vertical tick lines */}
+      {tickIndices.map((idx, i) => {
+        const xp = x(idx);
+        return <line key={`vgrid-${i}`} x1={xp} x2={xp} y1={8} y2={priceHeight - 8} stroke="var(--chart-grid-vertical)" strokeWidth={1} />;
+      })}
+      {/* Price area and Close line (area fill + stroke) */}
+      {/* Candlesticks (if OHLC series present and chartMode=candles) */}
+      {(() => {
+        if (chartMode !== 'candles') return null;
+        if (!visibleOpens || !visibleHighs || !visibleLows || visibleOpens.length === 0 || visibleHighs.length === 0 || visibleLows.length === 0) return null;
+        const bars = [];
+        const barWidth = Math.max(1, Math.floor((width - 40) / n - 1));
+        let validCount = 0;
+        for (let i = 0; i < n; i++) {
+          const o = visibleOpens[i];
+          const h = visibleHighs[i];
+          const l = visibleLows[i];
+          const c = visibleCloses[i];
+          if (o == null || h == null || l == null || c == null) continue;
+          validCount++;
+          const xp = x(i);
+          const yHigh = yPrice(h);
+          const yLow = yPrice(l);
+          const yOpen = yPrice(o);
+          const yClose = yPrice(c);
+          const bodyTop = Math.min(yOpen, yClose);
+          const bodyHeight = Math.max(1, Math.abs(yClose - yOpen));
+          const rectX = xp - barWidth / 2;
+          const color = c >= o ? 'var(--candle-up)' : 'var(--candle-down)';
+          // wick
+          bars.push(<line key={`wick-${i}`} x1={xp} x2={xp} y1={yHigh} y2={yLow} stroke={color} strokeWidth={1} />);
+          // body
+          bars.push(<rect key={`body-${i}`} x={rectX} y={bodyTop} width={barWidth} height={bodyHeight} fill={color} stroke={color} />);
+        }
+        // If OHLC is sparse (e.g., intraday feed missing O/H/L), fall back to close line so user still sees the series update
+        if (validCount < Math.max(5, Math.floor(n * 0.2))) {
+          return (
+            <>
+              <path d={pathFromArr(visibleCloses, yPrice)} stroke="var(--chart-price-stroke-strong)" strokeWidth={1.6} fill="none" />
+            </>
+          );
+        }
+        return bars;
+      })()}
+      {chartMode === 'area' && (
+        <>
+          <path d={pathFromArr(visibleCloses, yPrice) + ` L ${x(n - 1)} ${priceHeight} L ${x(0)} ${priceHeight} Z`} fill="url(#priceAreaGradient)" stroke="none" opacity={1} />
+          <path d={pathFromArr(closes, yPrice)} stroke="var(--chart-price-stroke-strong)" strokeWidth={2} fill="none" />
+        </>
+      )}
+
+      {/* Buy/Sell markers */}
+      {(() => {
+        const markers = [];
+        // Buy marker: if buyZone is present, try find latest exact match, otherwise approximate by mid-point
+        if (buyZone && buyZone.length === 2 && closes.length) {
+          const [buyLow, buyHigh] = buyZone;
+          let idx = findMostRecentInRange(closes, buyLow, buyHigh);
+          if (idx === -1) {
+            const buyMid = (buyLow + buyHigh) / 2;
+            idx = findClosestIndex(closes, buyMid);
+          }
+            if (idx >= 0) {
+              const xp = x(idx);
+              const yp = yPrice(closes[idx]);
+              const tipY = Math.min(priceHeight - 6, yp + 10); // place tip slightly below
+              const arrowSize = 8;
+              // small upward triangle for buy
+              const points = `${xp},${tipY} ${xp - arrowSize},${tipY + arrowSize} ${xp + arrowSize},${tipY + arrowSize}`;
+              markers.push(<polygon key={`buy-${idx}`} points={points} fill="var(--candle-up)" stroke="var(--candle-border)" strokeWidth={0.6} />);
+              // label
+              markers.push(<text key={`buy-label-${idx}`} x={xp + 10} y={tipY + 8} fontSize={10} fill="var(--candle-up)" fontWeight={600}>BUY</text>);
+          }
+        }
+        // Sell markers for each target (place above the closest candle at target price)
+        if (sellTargets && sellTargets.length) {
+          for (let ti = 0; ti < sellTargets.length; ti++) {
+            const targ = sellTargets[ti];
+            const idxEq = findClosestIndex(closes, targ);
+            if (idxEq >= 0) {
+              const xp = x(idxEq);
+              const yp = yPrice(closes[idxEq]);
+              const tipY = Math.max(8, yp - 12); // place tip slightly above
+              const arrowSize = 8;
+              const points = `${xp},${tipY} ${xp - arrowSize},${tipY - arrowSize} ${xp + arrowSize},${tipY - arrowSize}`;
+              markers.push(<polygon key={`sell-${ti}-${idxEq}`} points={points} fill="var(--candle-down)" stroke="var(--candle-border)" strokeWidth={0.6} />);
+              // label
+              markers.push(<text key={`sell-label-${ti}-${idxEq}`} x={xp + 10} y={tipY - 6} fontSize={10} fill="var(--candle-down)" fontWeight={600}>{`T${ti + 1}`}</text>);
+            }
+          }
+        }
+        return markers;
+      })()}
+      {/* close-line is drawn above based on chartMode to avoid double-draw */}
+      {/* EMA50 */}
+      {showEMA50 && <path d={pathFromArr(visibleEma50, yPrice)} stroke="var(--stroke-ema50)" strokeWidth={1.3} fill="none" />}
+      {/* EMA200 (dashed) */}
+      {showEMA200 && <path d={pathFromArr(visibleEma200, yPrice)} stroke="var(--stroke-ema200)" strokeWidth={1.2} strokeDasharray="var(--chart-ema200-dash)" fill="none" />}
+      
+      {/* Bollinger Bands */}
+      {showBollinger && bollingerBands && (() => {
+        return (
+          <>
+            {/* Upper Band */}
+            {visibleBBUpper && visibleBBUpper.length > 0 && (
+              <path d={pathFromArr(visibleBBUpper, yPrice)} stroke="#a78bfa" strokeWidth={1} strokeDasharray="3 3" fill="none" opacity={0.7} />
+            )}
+            {/* Middle Band */}
+            {visibleBBMiddle && visibleBBMiddle.length > 0 && (
+              <path d={pathFromArr(visibleBBMiddle, yPrice)} stroke="#a78bfa" strokeWidth={1.2} fill="none" opacity={0.5} />
+            )}
+            {/* Lower Band */}
+            {visibleBBLower && visibleBBLower.length > 0 && (
+              <path d={pathFromArr(visibleBBLower, yPrice)} stroke="#a78bfa" strokeWidth={1} strokeDasharray="3 3" fill="none" opacity={0.7} />
+            )}
+            {/* Shaded area between bands */}
+            {visibleBBUpper && visibleBBLower && visibleBBUpper.length > 0 && visibleBBLower.length > 0 && (() => {
+              let pathData = '';
+              // Draw upper band
+              for (let i = 0; i < visibleBBUpper.length; i++) {
+                if (visibleBBUpper[i] != null) {
+                  const xp = x(i);
+                  const yp = yPrice(visibleBBUpper[i]);
+                  pathData += pathData === '' ? `M ${xp} ${yp}` : ` L ${xp} ${yp}`;
+                }
+              }
+              // Draw lower band in reverse
+              for (let i = visibleBBLower.length - 1; i >= 0; i--) {
+                if (visibleBBLower[i] != null) {
+                  const xp = x(i);
+                  const yp = yPrice(visibleBBLower[i]);
+                  pathData += ` L ${xp} ${yp}`;
+                }
+              }
+              pathData += ' Z';
+              return <path d={pathData} fill="#a78bfa" opacity={0.08} />;
+            })()}
+          </>
+        );
+      })()}
+      
+      {/* VWAP */}
+      {showVWAP && vwap && visibleVWAP && visibleVWAP.length > 0 && (
+        <path d={pathFromArr(visibleVWAP, yPrice)} stroke="#14b8a6" strokeWidth={1.5} strokeDasharray="5 3" fill="none" opacity={0.8} />
+      )}
+      
+      {/* Price y labels left */}
+      <text x={6} y={20} fill="var(--chart-axis-label)" fontSize={10}>{maxV.toFixed(2)}</text>
+      <text x={6} y={priceHeight - 6} fill="var(--chart-axis-label)" fontSize={10}>{minV.toFixed(2)}</text>
+      {/* Price y labels right (min/mid/max) */}
+      {(() => {
+        const labels = [];
+        const labelCount = 4;
+        for (let i = 0; i <= labelCount; i++) {
+          const t = i / labelCount;
+          const val = minV + (maxV - minV) * (1 - t);
+          const y = yPrice(val);
+          labels.push(<text key={`yr-${i}`} x={width - 6} y={y} textAnchor="end" fill="var(--chart-axis-label)" fontSize={10}>{val.toFixed(2)}</text>);
+        }
+        return labels;
+      })()}
+
+      {/* X-axis ticks (time) at the bottom under MACD */}
+      {(() => {
+        const bottomY = priceHeight + rsiHeight + macdHeight + 18; // bottom padding
+        const uniqueIdx = Array.from(new Set(tickIndices.map((i) => Math.max(0, Math.min(n - 1, i)))));
+        return uniqueIdx.map((idx, i) => {
+          if (!visibleTimestamps || visibleTimestamps.length <= idx) return null;
+          const ts = visibleTimestamps[idx];
+          // Format label based on selected timeframe
+          let label = `${idx}`;
+          if (ts && typeof ts === 'number') {
+            label = formatTime(ts);
+          }
+          return (
+            <text key={i} x={x(idx)} y={bottomY} fontSize={11} fill="var(--muted)" textAnchor="middle">{label}</text>
+          );
+        });
+      })()}
+      
+      {/* Crosshair time label below vertical line */}
+      {mousePos && hoveredIndex !== null && visibleTimestamps[hoveredIndex] && (
+        <g>
+          {/* Top time label */}
+          <rect 
+            x={x(hoveredIndex) - 50} 
+            y={6} 
+            width={100} 
+            height={18} 
+            fill="var(--primary)" 
+            rx={4}
+            opacity={0.9}
+          />
+          <text 
+            x={x(hoveredIndex)} 
+            y={19} 
+            fontSize={12} 
+            fill="white" 
+            textAnchor="middle"
+            fontWeight={600}
+          >
+            {formatTimeDetailed(visibleTimestamps[hoveredIndex])}
+          </text>
+          {/* Background rectangle for time label */}
+          <rect 
+            x={x(hoveredIndex) - 40} 
+            y={totalHeight - 28} 
+            width={80} 
+            height={16} 
+            fill="var(--primary)" 
+            rx={3}
+            opacity={0.9}
+          />
+          <text 
+            x={x(hoveredIndex)} 
+            y={totalHeight - 17} 
+            fontSize={11} 
+            fill="white" 
+            textAnchor="middle"
+            fontWeight={600}
+          >
+            {formatTime(visibleTimestamps[hoveredIndex])}
+          </text>
+        </g>
+      )}
+
+      {/* RSI chart (grid and thresholds) */}
+      {showRSI && <rect x={0} y={priceHeight} width={width} height={rsiHeight} fill="var(--panel-bg)" rx={8} pointerEvents="none" />}
+      {(() => {
+        const lines = [];
+        const gridCount = 2; // small grid for RSI
+        for (let i = 0; i <= gridCount; i++) {
+          const t = i / gridCount;
+          const val = rsiMin + (rsiMax - rsiMin) * (1 - t);
+          const y = yRsi(val);
+          lines.push(<line key={`rgrid-${i}`} x1={20} x2={width - 20} y1={y} y2={y} stroke="var(--chart-grid)" strokeWidth={1} />);
+        }
+        return lines;
+      })()}
+      {visibleRsi && visibleRsi.length > 0 && (
+        <path d={pathFromArr(visibleRsi, yRsi)} stroke="var(--stroke-rsi)" strokeWidth={1.4} fill="none" />
+      )}
+      {/* RSI thresholds: 70 and 30 */}
+      <line x1={20} x2={width - 20} y1={yRsi(70)} y2={yRsi(70)} stroke="var(--stroke-negative)" strokeDasharray="4 4" strokeWidth={0.8} />
+      <line x1={20} x2={width - 20} y1={yRsi(30)} y2={yRsi(30)} stroke="var(--stroke-positive)" strokeDasharray="4 4" strokeWidth={0.8} />
+
+      {/* MACD chart (grid and histogram) */}
+      {showMACD && <rect x={0} y={priceHeight + rsiHeight} width={width} height={macdHeight} fill="var(--panel-bg)" rx={8} pointerEvents="none" />}
+      {(() => {
+        const lines = [];
+        const gridCount = 2;
+        for (let i = 0; i <= gridCount; i++) {
+          const t = i / gridCount;
+          const y = priceHeight + rsiHeight + (macdHeight - 20) * t + 10;
+          lines.push(<line key={`mgrid-${i}`} x1={20} x2={width - 20} y1={y} y2={y} stroke="var(--chart-grid)" strokeWidth={1} />);
+        }
+        return lines;
+      })()}
+      {/* MACD histogram bars */}
+      {visibleHist.map((h, i) => {
+        if (h == null) return null;
+        const barWidth = Math.max(1, (width - 40) / n - 1);
+        const xp = x(i) - barWidth / 2;
+        const y0 = yMacd(0);
+        const yv = yMacd(h);
+        const hgt = y0 - yv;
+        const color = h >= 0 ? 'var(--accent)' : 'var(--stroke-negative)';
+        return <rect key={i} x={xp} y={yv} width={barWidth} height={Math.abs(hgt)} fill={color} />;
+      })}
+      {visibleMacdLine && visibleMacdLine.length > 0 && <path d={pathFromArr(visibleMacdLine, yMacd)} stroke="var(--stroke-macd)" strokeWidth={1.2} fill="none" />}
+      {visibleSignalLine && visibleSignalLine.length > 0 && <path d={pathFromArr(visibleSignalLine, yMacd)} stroke="var(--stroke-positive)" strokeWidth={1} fill="none" />}
+      
+      {/* Volume Chart */}
+      {showVolume && volumeHeight > 0 && (() => {
+        const volumeYStart = priceHeight + rsiHeight + macdHeight;
+        const maxVol = Math.max(...visibleVolumes.filter(v => v != null));
+        const yVolume = (v) => {
+          if (v == null || maxVol === 0) return volumeYStart + volumeHeight - 10;
+          return volumeYStart + 10 + (1 - v / maxVol) * (volumeHeight - 20);
+        };
+        
+        return (
+          <>
+            {/* Volume label */}
+            <text x={10} y={volumeYStart + 20} fill="var(--chart-axis-label)" fontSize={11} fontWeight={600}>
+              Volume
+            </text>
+            {/* Volume grid lines */}
+            <line x1={20} x2={width - 20} y1={volumeYStart + volumeHeight - 10} y2={volumeYStart + volumeHeight - 10} stroke="var(--chart-grid)" strokeWidth={1} />
+            {/* Volume bars */}
+            {visibleVolumes.map((vol, i) => {
+              if (vol == null) return null;
+              const barWidth = Math.max(1, (width - 40) / n - 1);
+              const xp = x(i) - barWidth / 2;
+              const y0 = volumeYStart + volumeHeight - 10;
+              const yv = yVolume(vol);
+              const hgt = y0 - yv;
+              const color = visibleCloses[i] >= (visibleOpens[i] || visibleCloses[i]) ? 'var(--accent)' : 'var(--stroke-negative)';
+              return <rect key={i} x={xp} y={yv} width={barWidth} height={Math.abs(hgt)} fill={color} opacity={0.6} />;
+            })}
+            {/* Volume MA overlay */}
+            {visibleVolumeMA && visibleVolumeMA.length > 0 && (
+              <path d={pathFromArr(visibleVolumeMA, yVolume)} stroke="#60a5fa" strokeWidth={1.5} fill="none" strokeDasharray="3 3" />
+            )}
+          </>
+        );
+      })()}
+      
+      {/* ATR Chart */}
+      {showATR && atrHeight > 0 && (() => {
+        const atrYStart = priceHeight + rsiHeight + macdHeight + volumeHeight;
+        const atrVals = visibleATR.filter(v => v != null);
+        const maxAtr = Math.max(...atrVals, 0);
+        const minAtr = Math.min(...atrVals, 0);
+        const atrPad = (maxAtr - minAtr) * 0.1 || 1;
+        const yATR = (v) => {
+          if (v == null) return atrYStart + atrHeight / 2;
+          return atrYStart + 10 + (1 - (v - minAtr) / (maxAtr - minAtr + atrPad)) * (atrHeight - 20);
+        };
+        
+        return (
+          <>
+            {/* ATR label */}
+            <text x={10} y={atrYStart + 20} fill="var(--chart-axis-label)" fontSize={11} fontWeight={600}>
+              ATR (14)
+            </text>
+            {/* ATR grid lines */}
+            <line x1={20} x2={width - 20} y1={atrYStart + 10} y2={atrYStart + 10} stroke="var(--chart-grid)" strokeWidth={1} />
+            <line x1={20} x2={width - 20} y1={atrYStart + atrHeight - 10} y2={atrYStart + atrHeight - 10} stroke="var(--chart-grid)" strokeWidth={1} />
+            {/* ATR line */}
+            {visibleATR && visibleATR.length > 0 && (
+              <path d={pathFromArr(visibleATR, yATR)} stroke="#fb923c" strokeWidth={1.5} fill="none" />
+            )}
+          </>
+        );
+      })()}
+      
+      {/* OBV Chart */}
+      {showOBV && obvHeight > 0 && (() => {
+        const obvYStart = priceHeight + rsiHeight + macdHeight + volumeHeight + atrHeight;
+        const obvVals = visibleOBV.filter(v => v != null);
+        const maxObv = Math.max(...obvVals);
+        const minObv = Math.min(...obvVals);
+        const obvPad = (maxObv - minObv) * 0.05 || 1;
+        const yOBV = (v) => {
+          if (v == null) return obvYStart + obvHeight / 2;
+          return obvYStart + 10 + (1 - (v - minObv) / (maxObv - minObv + obvPad)) * (obvHeight - 20);
+        };
+        
+        return (
+          <>
+            {/* OBV label */}
+            <text x={10} y={obvYStart + 20} fill="var(--chart-axis-label)" fontSize={11} fontWeight={600}>
+              OBV
+            </text>
+            {/* OBV grid lines */}
+            <line x1={20} x2={width - 20} y1={obvYStart + 10} y2={obvYStart + 10} stroke="var(--chart-grid)" strokeWidth={1} />
+            <line x1={20} x2={width - 20} y1={obvYStart + obvHeight / 2} y2={obvYStart + obvHeight / 2} stroke="var(--chart-grid)" strokeWidth={1} strokeDasharray="2 2" />
+            <line x1={20} x2={width - 20} y1={obvYStart + obvHeight - 10} y2={obvYStart + obvHeight - 10} stroke="var(--chart-grid)" strokeWidth={1} />
+            {/* OBV line */}
+            {visibleOBV && visibleOBV.length > 0 && (
+              <path d={pathFromArr(visibleOBV, yOBV)} stroke="#a3e635" strokeWidth={1.5} fill="none" />
+            )}
+          </>
+        );
+      })()}
+      
+      {/* Crosshair lines */}
+      {mousePos && hoveredIndex !== null && (
+        <>
+          {/* Vertical line follows mouse exactly */}
+          <line 
+            x1={mousePos.x} 
+            x2={mousePos.x} 
+            y1={0} 
+            y2={totalHeight} 
+            stroke="var(--primary)" 
+            strokeWidth={1} 
+            strokeDasharray="4 2"
+            opacity={0.7}
+          />
+          {/* Horizontal line follows mouse exactly */}
+          <line 
+            x1={0} 
+            x2={width} 
+            y1={mousePos.y} 
+            y2={mousePos.y} 
+            stroke="var(--primary)" 
+            strokeWidth={1} 
+            strokeDasharray="4 2"
+            opacity={0.7}
+          />
+          {/* Price label on horizontal line */}
+          {mousePos.y <= priceHeight && (() => {
+            // Find the price value at the mouse Y position
+            const priceAtMouse = minV + (maxV - minV) * (1 - (mousePos.y - 10) / (priceHeight - 20));
+            return (
+              <>
+                {/* Background rect for label */}
+                <rect 
+                  x={width - 50} 
+                  y={mousePos.y - 8} 
+                  width={45} 
+                  height={16} 
+                  fill="var(--primary)" 
+                  rx={3}
+                  opacity={0.9}
+                />
+                {/* Price text */}
+                <text 
+                  x={width - 27} 
+                  y={mousePos.y + 4} 
+                  textAnchor="middle" 
+                  fill="white" 
+                  fontSize={10} 
+                  fontWeight={600}
+                >
+                  {priceAtMouse.toFixed(2)}
+                </text>
+              </>
+            );
+          })()}
+          {/* Crosshair center marker at exact mouse position */}
+          <circle 
+            cx={mousePos.x} 
+            cy={mousePos.y} 
+            r={3} 
+            fill="transparent" 
+            stroke="var(--primary)" 
+            strokeWidth={1.5}
+          />
+          {/* Highlight point snapped to nearest data point */}
+          {visibleCloses[hoveredIndex] != null && (
+            <circle 
+              cx={x(hoveredIndex)} 
+              cy={yPrice(visibleCloses[hoveredIndex])} 
+              r={5} 
+              fill="var(--primary)" 
+              stroke="white" 
+              strokeWidth={2}
+            />
+          )}
+        </>
+      )}
+      
+      {/* Invisible overlay to capture all mouse events for drag/pan functionality */}
+      <rect x={0} y={0} width={width} height={totalHeight} fill="transparent" pointerEvents="all" />
+      </svg>
+    </div>
+  );
+};
+
+export default App;
+
+
+

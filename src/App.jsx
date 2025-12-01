@@ -2032,11 +2032,138 @@ const CustomSVGChart = ({
   const [showOBV, setShowOBV] = React.useState(false);
   const [showVWAP, setShowVWAP] = React.useState(false);
   const [autoScale, setAutoScale] = React.useState(true);
+  const [showAnalysis, setShowAnalysis] = React.useState(false);
   
   // Drag state for panning
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStartX, setDragStartX] = React.useState(0);
   const [dragStartOffset, setDragStartOffset] = React.useState(0);
+
+  // Generate buy/sell analysis based on technical indicators
+  const generateAnalysis = () => {
+    if (!closes || closes.length === 0) return [];
+    
+    const analysis = [];
+    const currentPrice = closes[closes.length - 1];
+    const currentRSI = rsi && rsi.length > 0 ? rsi[rsi.length - 1] : null;
+    const currentEMA50 = ema50 && ema50.length > 0 ? ema50[ema50.length - 1] : null;
+    const currentEMA200 = ema200 && ema200.length > 0 ? ema200[ema200.length - 1] : null;
+    const currentMACD = macd && macd.macd != null ? macd.macd : null;
+    const currentSignal = macd && macd.signal != null ? macd.signal : null;
+    const currentHist = macd && macd.hist != null ? macd.hist : null;
+    const bbands = bollingerBands;
+    const currentBBUpper = bbands && bbands.upper && bbands.upper.length > 0 ? bbands.upper[bbands.upper.length - 1] : null;
+    const currentBBMiddle = bbands && bbands.middle && bbands.middle.length > 0 ? bbands.middle[bbands.middle.length - 1] : null;
+    const currentBBLower = bbands && bbands.lower && bbands.lower.length > 0 ? bbands.lower[bbands.lower.length - 1] : null;
+    const percentB = bbands && bbands.percentB != null ? bbands.percentB : null;
+
+    // Price trend analysis
+    if (currentEMA50 != null && currentEMA200 != null) {
+      if (currentPrice > currentEMA50 && currentPrice > currentEMA200) {
+        analysis.push({ type: 'bullish', text: `Price (${currentPrice.toFixed(2)}) is above both EMA50 (${currentEMA50.toFixed(2)}) and EMA200 (${currentEMA200.toFixed(2)}), indicating strong uptrend.` });
+      } else if (currentPrice < currentEMA50 && currentPrice < currentEMA200) {
+        analysis.push({ type: 'bearish', text: `Price (${currentPrice.toFixed(2)}) is below both EMA50 (${currentEMA50.toFixed(2)}) and EMA200 (${currentEMA200.toFixed(2)}), indicating downtrend.` });
+      } else if (currentPrice > currentEMA50 && currentPrice < currentEMA200) {
+        analysis.push({ type: 'neutral', text: `Price (${currentPrice.toFixed(2)}) is between EMA50 (${currentEMA50.toFixed(2)}) and EMA200 (${currentEMA200.toFixed(2)}), showing mixed signals.` });
+      }
+    }
+
+    // Golden/Death cross
+    if (currentEMA50 != null && currentEMA200 != null) {
+      if (currentEMA50 > currentEMA200) {
+        const crossPercent = ((currentEMA50 - currentEMA200) / currentEMA200 * 100).toFixed(2);
+        analysis.push({ type: 'bullish', text: `Golden Cross: EMA50 is ${crossPercent}% above EMA200, signaling bullish momentum.` });
+      } else {
+        const crossPercent = ((currentEMA200 - currentEMA50) / currentEMA50 * 100).toFixed(2);
+        analysis.push({ type: 'bearish', text: `Death Cross: EMA50 is ${crossPercent}% below EMA200, signaling bearish momentum.` });
+      }
+    }
+
+    // RSI analysis
+    if (currentRSI != null) {
+      if (currentRSI < 30) {
+        analysis.push({ type: 'bullish', text: `RSI at ${currentRSI.toFixed(2)} is in oversold territory (<30), potential buying opportunity.` });
+      } else if (currentRSI > 70) {
+        analysis.push({ type: 'bearish', text: `RSI at ${currentRSI.toFixed(2)} is in overbought territory (>70), caution advised.` });
+      } else if (currentRSI >= 40 && currentRSI <= 60) {
+        analysis.push({ type: 'neutral', text: `RSI at ${currentRSI.toFixed(2)} is in neutral zone, showing balanced momentum.` });
+      }
+    }
+
+    // MACD analysis
+    if (currentMACD != null && currentSignal != null && currentHist != null) {
+      if (currentHist > 0 && currentMACD > currentSignal) {
+        analysis.push({ type: 'bullish', text: `MACD histogram is positive (${currentHist.toFixed(3)}), indicating bullish momentum.` });
+      } else if (currentHist < 0 && currentMACD < currentSignal) {
+        analysis.push({ type: 'bearish', text: `MACD histogram is negative (${currentHist.toFixed(3)}), indicating bearish momentum.` });
+      }
+      
+      // Check for recent crossover (last 3 bars)
+      if (macd.macdSeries && macd.signalSeries) {
+        const len = macd.macdSeries.length;
+        if (len >= 3) {
+          const prevHist = (macd.macdSeries[len - 2] || 0) - (macd.signalSeries[len - 2] || 0);
+          if (prevHist <= 0 && currentHist > 0) {
+            analysis.push({ type: 'bullish', text: `MACD just crossed above signal line - fresh buy signal detected.` });
+          } else if (prevHist >= 0 && currentHist < 0) {
+            analysis.push({ type: 'bearish', text: `MACD just crossed below signal line - fresh sell signal detected.` });
+          }
+        }
+      }
+    }
+
+    // Bollinger Bands analysis
+    if (currentBBUpper != null && currentBBMiddle != null && currentBBLower != null && percentB != null) {
+      if (currentPrice < currentBBLower) {
+        const distancePercent = ((currentBBLower - currentPrice) / currentPrice * 100).toFixed(2);
+        analysis.push({ type: 'bullish', text: `Price is ${distancePercent}% below lower Bollinger Band (${currentBBLower.toFixed(2)}), suggesting oversold conditions.` });
+      } else if (currentPrice > currentBBUpper) {
+        const distancePercent = ((currentPrice - currentBBUpper) / currentPrice * 100).toFixed(2);
+        analysis.push({ type: 'bearish', text: `Price is ${distancePercent}% above upper Bollinger Band (${currentBBUpper.toFixed(2)}), suggesting overbought conditions.` });
+      } else if (percentB >= 0.4 && percentB <= 0.6) {
+        analysis.push({ type: 'neutral', text: `Price is near middle Bollinger Band (%B: ${(percentB * 100).toFixed(0)}%), showing normal volatility.` });
+      }
+      
+      // Band width analysis
+      if (bbands.bandwidth != null) {
+        const bw = bbands.bandwidth;
+        if (bw < 5) {
+          analysis.push({ type: 'neutral', text: `Bollinger Band width is tight (${bw.toFixed(2)}), expecting volatility expansion soon.` });
+        } else if (bw > 15) {
+          analysis.push({ type: 'neutral', text: `Bollinger Band width is wide (${bw.toFixed(2)}), high volatility present.` });
+        }
+      }
+    }
+
+    // Volume analysis
+    if (volumes && volumes.length > 5 && volumeMA && volumeMA.length > 0) {
+      const currentVolume = volumes[volumes.length - 1];
+      const avgVolume = volumeMA[volumeMA.length - 1];
+      if (avgVolume && currentVolume > avgVolume * 1.5) {
+        const volumeIncrease = ((currentVolume / avgVolume - 1) * 100).toFixed(0);
+        analysis.push({ type: 'neutral', text: `Volume is ${volumeIncrease}% above average, indicating strong interest and potential breakout.` });
+      } else if (avgVolume && currentVolume < avgVolume * 0.5) {
+        analysis.push({ type: 'neutral', text: `Volume is below average, suggesting lack of conviction in current move.` });
+      }
+    }
+
+    // Overall sentiment based on analysis count
+    const bullishCount = analysis.filter(a => a.type === 'bullish').length;
+    const bearishCount = analysis.filter(a => a.type === 'bearish').length;
+    
+    let recommendation = '';
+    if (bullishCount > bearishCount + 1) {
+      recommendation = `Overall: ${bullishCount} bullish signals suggest this may be a good buying opportunity at current levels (${currentPrice.toFixed(2)}).`;
+    } else if (bearishCount > bullishCount + 1) {
+      recommendation = `Overall: ${bearishCount} bearish signals suggest caution - consider waiting for better entry or taking profits.`;
+    } else {
+      recommendation = `Overall: Mixed signals (${bullishCount} bullish, ${bearishCount} bearish) - wait for clearer trend confirmation.`;
+    }
+
+    analysis.push({ type: 'summary', text: recommendation });
+
+    return analysis;
+  };
 
   const width = 900;
   const priceHeight = chartHeight;
@@ -2502,6 +2629,10 @@ const CustomSVGChart = ({
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
             <input type="checkbox" checked={autoScale} onChange={(e) => setAutoScale(e.target.checked)} />
             <span style={{ color: 'var(--muted)' }}>Auto Scale</span>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
+            <input type="checkbox" checked={showAnalysis} onChange={(e) => setShowAnalysis(e.target.checked)} />
+            <span style={{ color: 'var(--accent)' }}>Show Analysis</span>
           </label>
         </div>
       </div>
@@ -3019,6 +3150,100 @@ const CustomSVGChart = ({
       {/* Invisible overlay to capture all mouse events for drag/pan functionality */}
       <rect x={0} y={0} width={width} height={totalHeight} fill="transparent" pointerEvents="all" />
       </svg>
+      
+      {/* Technical Analysis Section */}
+      {showAnalysis && (() => {
+        const analysisPoints = generateAnalysis();
+        return (
+          <div style={{
+            marginTop: '1.5rem',
+            padding: '1.5rem',
+            borderRadius: '1rem',
+            background: 'var(--panel-bg)',
+            border: '1px solid var(--border)'
+          }}>
+            <h3 style={{
+              margin: '0 0 1rem 0',
+              fontSize: '1.2rem',
+              color: 'var(--primary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <span>📊</span>
+              Technical Analysis - {symbol} ({timeframe})
+            </h3>
+            
+            {analysisPoints.length === 0 ? (
+              <p style={{ color: 'var(--muted)', fontStyle: 'italic' }}>Insufficient data for analysis</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {analysisPoints.map((point, idx) => {
+                  let bgColor = 'rgba(100, 116, 139, 0.1)';
+                  let borderColor = 'var(--border)';
+                  let icon = '•';
+                  
+                  if (point.type === 'bullish') {
+                    bgColor = 'rgba(16, 185, 129, 0.1)';
+                    borderColor = '#10b981';
+                    icon = '✓';
+                  } else if (point.type === 'bearish') {
+                    bgColor = 'rgba(239, 68, 68, 0.1)';
+                    borderColor = '#ef4444';
+                    icon = '✗';
+                  } else if (point.type === 'summary') {
+                    bgColor = 'rgba(59, 130, 246, 0.15)';
+                    borderColor = '#3b82f6';
+                    icon = '📌';
+                  }
+                  
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        borderRadius: '0.5rem',
+                        background: bgColor,
+                        border: `1px solid ${borderColor}`,
+                        display: 'flex',
+                        alignItems: 'start',
+                        gap: '0.75rem',
+                        fontSize: point.type === 'summary' ? '0.95rem' : '0.9rem',
+                        fontWeight: point.type === 'summary' ? '600' : '400'
+                      }}
+                    >
+                      <span style={{ 
+                        color: borderColor, 
+                        fontWeight: 'bold',
+                        fontSize: '1.1rem',
+                        minWidth: '1.5rem',
+                        textAlign: 'center'
+                      }}>
+                        {icon}
+                      </span>
+                      <span style={{ color: 'var(--text)', lineHeight: '1.5' }}>
+                        {point.text}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            <div style={{
+              marginTop: '1rem',
+              paddingTop: '1rem',
+              borderTop: '1px solid var(--border)',
+              fontSize: '0.85rem',
+              color: 'var(--muted)',
+              fontStyle: 'italic'
+            }}>
+              <strong>Note:</strong> This analysis is generated based on technical indicators for the {timeframe} timeframe. 
+              It updates automatically when you change timeframes. Always do your own research and consider multiple factors before making investment decisions.
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

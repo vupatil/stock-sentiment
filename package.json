@@ -12,6 +12,7 @@
     "start:dev-bg": "powershell -ExecutionPolicy Bypass -File ./scripts/start-dev-servers.ps1",
     "stop:dev-bg": "powershell -ExecutionPolicy Bypass -File ./scripts/stop-dev-servers.ps1",
     "build": "vite build",
+    "build:production": "powershell -ExecutionPolicy Bypass -File ./scripts/build-for-production.ps1",
     "preview": "vite preview"
   },
   "dependencies": {

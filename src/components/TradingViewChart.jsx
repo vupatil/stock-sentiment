@@ -89,7 +89,13 @@ export default function TradingViewChart({ symbol, interval = 'D', theme = 'dark
         if (widgetRef.current && widgetRef.current.onChartReady) {
           widgetRef.current.onChartReady(() => {
             try {
-              const chart = widgetRef.current.chart();
+              const chart = widgetRef.current?.chart();
+              
+              // Validate chart object before adding studies
+              if (!chart || typeof chart.createStudy !== 'function') {
+                console.warn('TradingView chart not ready or createStudy unavailable');
+                return;
+              }
               
               // Main chart overlays
               chart.createStudy('Moving Average Exponential', false, false, [50]);

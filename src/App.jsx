@@ -94,9 +94,27 @@ function App() {
     }
   };
   
+  // Get API URL - supports both development and production
+  const getApiUrl = () => {
+    // First, check environment variable
+    if (import.meta.env.VITE_PROXY_URL) {
+      return import.meta.env.VITE_PROXY_URL;
+    }
+    
+    // Auto-detect based on environment
+    // In production (built app), use relative path or production URL
+    if (import.meta.env.PROD) {
+      // If deployed to prysan.com/stkcld, API should be at prysan.com/api
+      return window.location.origin + '/api';
+    }
+    
+    // Development fallback
+    return 'http://localhost:3001';
+  };
+  
   // Fetch closes and combined OHLCV data
   const fetchCloses = async (sym, tf) => {
-    const proxyUrl = import.meta.env.VITE_LOCAL_PROXY_URL || 'http://localhost:3001';
+    const proxyUrl = getApiUrl();
     const url = `${proxyUrl}/api/stock/${sym}?interval=${tf}&range=1y`;
     
     const resp = await fetch(url);
@@ -233,15 +251,16 @@ function App() {
     setCurrentScanSymbol('');
     
     const results = [];
-    let processed = 0;
+    const processedSymbols = new Set(); // Track processed symbols to avoid duplicates
     const queue = [...availableSymbols];
     
     // Worker function
     const worker = async () => {
       while (queue.length > 0 && !stopScanRequested && results.length < scanLimit) {
         const sym = queue.shift();
-        if (!sym) continue;
+        if (!sym || processedSymbols.has(sym)) continue;
         
+        processedSymbols.add(sym); // Mark as processed immediately
         setCurrentScanSymbol(sym);
         
         let retries = scanRetries;
@@ -253,8 +272,7 @@ function App() {
             const { closes, combined, opens, highs, lows, volumes } = await fetchCloses(sym, scanTimeframe);
             
             if (!closes || closes.length < 50) {
-              processed++;
-              break;
+              break; // Skip this symbol and move to next
             }
             
             const params = INDICATOR_PARAMS[scanTimeframe] || INDICATOR_PARAMS['1d'];
@@ -291,6 +309,11 @@ function App() {
         }
         
         if (success && resultData) {
+          // Double-check we haven't exceeded the limit (safety check)
+          if (results.length >= scanLimit || stopScanRequested) {
+            break;
+          }
+          
           // Apply sentiment filter
           const { sentiment } = resultData;
           const isBullish = sentiment === 'Strong Bullish' || sentiment === 'Bullish';
@@ -305,8 +328,6 @@ function App() {
             setScanProgress({ done: results.length, total: scanLimit });
           }
         }
-        
-        processed++;
       }
     };
     

@@ -194,3 +194,22 @@ select:focus-visible {
   border-color: var(--primary);
 }
 
+/* Fix dropdown option contrast across all browsers */
+select option {
+  background: #1e293b;
+  color: #ffffff;
+  padding: 0.5rem;
+  font-weight: 500;
+}
+
+select option:hover,
+select option:checked,
+select option:focus {
+  background: #334155;
+  color: #ffffff;
+}
+
+/* Ensure dropdown hover states are visible */
+select:hover {
+  border-color: var(--primary) !important;
+}

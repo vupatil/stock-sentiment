@@ -4,7 +4,7 @@
     "source": "S&P 500 constituents + top 50 ETFs by assets under management",
     "totalSymbols": 552,
     "symbols": [
-        "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "AVGO", "TSLA", "BRK.B",
+        "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "AVGO", "TSLA", "BRK-B",
         "LLY", "WMT", "VOO", "IVV", "SPY", "JPM", "V", "VTI", "ORCL", "JNJ",
         "MA", "QQQ", "XOM", "NFLX", "COST", "ABBV", "PLTR", "VUG", "BAC", "VEA",
         "HD", "IEFA", "VTV", "AMD", "BND", "GLD", "PG", "AGG", "GE", "IWF",

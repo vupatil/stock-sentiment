@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interval Verification Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        h1 {
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #ef4444;
+        }
+        .pending {
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 4px solid #fbbf24;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        button:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-box {
+            background: #334155;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #10b981;
+        }
+        .stat-label {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 Stock Sentiment Pro - Interval Verification</h1>
+    
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <p><strong>Symbol:</strong> AAPL</p>
+        <p><strong>Proxy URL:</strong> http://localhost:3001</p>
+        <p><strong>Total Intervals:</strong> 19 (12 native + 7 aggregated)</p>
+        <button id="runTests" onclick="runAllTests()">🚀 Run All Tests</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Progress</h2>
+        <div id="progress" class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="totalTests">0</div>
+                <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="passedTests">0</div>
+                <div class="stat-label">Passed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="failedTests">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="successRate">0%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const AGGREGATION_MAP = {
+            '3m': { base: '1m', multiplier: 3 },
+            '4m': { base: '2m', multiplier: 2 },
+            '10m': { base: '5m', multiplier: 2 },
+            '2h': { base: '1h', multiplier: 2 },
+            '4h': { base: '1h', multiplier: 4 },
+            '6h': { base: '1h', multiplier: 6 },
+            '12h': { base: '1h', multiplier: 12 }
+        };
+
+        const ALL_INTERVALS = [
+            '1m', '2m', '5m', '15m', '30m', '60m', '90m',
+            '1d', '5d', '1wk', '1mo', '3mo',
+            '3m', '4m', '10m', '2h', '4h', '6h', '12h'
+        ];
+
+        function aggregateCandles(candles, multiplier) {
+            const aggregated = [];
+            
+            for (let i = 0; i < candles.length; i += multiplier) {
+                const chunk = candles.slice(i, i + multiplier);
+                
+                if (chunk.length < multiplier) break;
+                
+                aggregated.push({
+                    ts: chunk[0].ts,
+                    open: chunk[0].open,
+                    high: Math.max(...chunk.map(c => c.high)),
+                    low: Math.min(...chunk.map(c => c.low)),
+                    close: chunk[chunk.length - 1].close,
+                    volume: chunk.reduce((sum, c) => sum + c.volume, 0)
+                });
+            }
+            
+            return aggregated;
+        }
+
+        async function testInterval(symbol, interval) {
+            const proxyUrl = 'http://localhost:3001';
+            const aggregationConfig = AGGREGATION_MAP[interval];
+            const requestInterval = aggregationConfig ? aggregationConfig.base : interval;
+            
+            try {
+                const url = `${proxyUrl}/api/stock/${symbol}?interval=${requestInterval}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+                
+                const result = data.chart?.result?.[0];
+                if (!result) {
+                    throw new Error('No data in response');
+                }
+                
+                const timestamps = result.timestamp || [];
+                const quotes = result.indicators?.quote?.[0] || {};
+                
+                let candles = timestamps.map((ts, i) => ({
+                    ts,
+                    open: quotes.open[i],
+                    high: quotes.high[i],
+                    low: quotes.low[i],
+                    close: quotes.close[i],
+                    volume: quotes.volume[i]
+                }));
+                
+                let finalCount = candles.length;
+                let aggregationInfo = '';
+                
+                if (aggregationConfig) {
+                    const originalCount = candles.length;
+                    candles = aggregateCandles(candles, aggregationConfig.multiplier);
+                    finalCount = candles.length;
+                    aggregationInfo = ` (${originalCount} ${requestInterval} → ${finalCount} ${interval})`;
+                }
+                
+                return {
+                    success: true,
+                    interval,
+                    dataPoints: finalCount,
+                    isAggregated: !!aggregationConfig,
+                    aggregationInfo
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    interval,
+                    error: error.message,
+                    isAggregated: !!aggregationConfig
+                };
+            }
+        }
+
+        async function runAllTests() {
+            const button = document.getElementById('runTests');
+            const resultsDiv = document.getElementById('results');
+            
+            button.disabled = true;
+            resultsDiv.innerHTML = '';
+            
+            let passed = 0;
+            let failed = 0;
+            const total = ALL_INTERVALS.length;
+            
+            document.getElementById('totalTests').textContent = total;
+            
+            for (const interval of ALL_INTERVALS) {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'test-result pending';
+                resultDiv.textContent = `⏳ Testing ${interval}...`;
+                resultsDiv.appendChild(resultDiv);
+                
+                const result = await testInterval('AAPL', interval);
+                
+                if (result.success) {
+                    passed++;
+                    resultDiv.className = 'test-result success';
+                    resultDiv.innerHTML = `✅ <strong>${result.interval}</strong> - ${result.dataPoints} data points${result.aggregationInfo}`;
+                } else {
+                    failed++;
+                    resultDiv.className = 'test-result error';
+                    resultDiv.innerHTML = `❌ <strong>${result.interval}</strong> - ${result.error}`;
+                }
+                
+                document.getElementById('passedTests').textContent = passed;
+                document.getElementById('failedTests').textContent = failed;
+                document.getElementById('successRate').textContent = 
+                    `${((passed / total) * 100).toFixed(1)}%`;
+                
+                // Small delay to avoid rate limiting
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            button.disabled = false;
+        }
+    </script>
+</body>
+</html>

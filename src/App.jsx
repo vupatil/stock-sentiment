@@ -31,15 +31,57 @@ const INDICATOR_PARAMS = {
   '15m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
   '30m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
   '60m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '90m': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
   '1h': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '2h': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '4h': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '6h': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
+  '12h': { emaShort: 20, emaLong: 50, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 100 },
   '1d': { emaShort: 50, emaLong: 200, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 220 },
+  '5d': { emaShort: 10, emaLong: 40, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 50 },
   '1wk': { emaShort: 10, emaLong: 40, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 50 },
-  '1mo': { emaShort: 6, emaLong: 24, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 30 }
+  '1mo': { emaShort: 6, emaLong: 24, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 30 },
+  '3mo': { emaShort: 6, emaLong: 24, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 30 }
+};
+
+// Aggregation map for calculated intervals
+const AGGREGATION_MAP = {
+  '3m': { base: '1m', multiplier: 3 },
+  '4m': { base: '2m', multiplier: 2 },
+  '10m': { base: '5m', multiplier: 2 },
+  '2h': { base: '1h', multiplier: 2 },
+  '4h': { base: '1h', multiplier: 4 },
+  '6h': { base: '1h', multiplier: 6 },
+  '12h': { base: '1h', multiplier: 12 }
+};
+
+// Aggregate candles helper function
+function aggregateCandles(candles, multiplier) {
+  const aggregated = [];
+  
+  for (let i = 0; i < candles.length; i += multiplier) {
+    const chunk = candles.slice(i, i + multiplier);
+    
+    // Skip incomplete chunks
+    if (chunk.length < multiplier) break;
+    
+    aggregated.push({
+      ts: chunk[0].ts,
+      open: chunk[0].open,
+      high: Math.max(...chunk.map(c => c.high)),
+      low: Math.min(...chunk.map(c => c.low)),
+      close: chunk[chunk.length - 1].close,
+      volume: chunk.reduce((sum, c) => sum + c.volume, 0)
+    });
+  }
+  
+  return aggregated;
 };
 
 function App() {
   // Main state
   const [symbol, setSymbol] = useState('AAPL');
+  const [companyName, setCompanyName] = useState('');
   const [timeframe, setTimeframe] = useState('1d');
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -63,6 +105,19 @@ function App() {
   const [currentScanSymbol, setCurrentScanSymbol] = useState('');
   const [availableSymbols, setAvailableSymbols] = useState(FALLBACK_TICKERS);
   
+  // API metadata and rate limiting state
+  const [apiSource, setApiSource] = useState(null);
+  const [quotaInfo, setQuotaInfo] = useState(null);
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const [retryCountdown, setRetryCountdown] = useState(0);
+  const [notification, setNotification] = useState(null);
+  
+  // Helper: show notification
+  const showNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000);
+  };
+  
   // Helper: sentiment color
   const sentimentColor = (sentiment) => {
     switch (sentiment) {
@@ -79,6 +134,23 @@ function App() {
   const formatPrice = (price) => {
     if (price == null) return '-';
     return price.toFixed(2);
+  };
+  
+  // Helper: format price with change
+  const formatPriceWithChange = (current, previous) => {
+    if (current == null) return { price: '-', change: null, changePercent: null, isPositive: null };
+    if (previous == null || previous === 0) return { price: formatPrice(current), change: null, changePercent: null, isPositive: null };
+    
+    const change = current - previous;
+    const changePercent = (change / previous) * 100;
+    const isPositive = change >= 0;
+    
+    return {
+      price: formatPrice(current),
+      change: formatPrice(Math.abs(change)),
+      changePercent: changePercent.toFixed(2),
+      isPositive
+    };
   };
   
   // Helper: row background color for scanner results
@@ -112,62 +184,141 @@ function App() {
     return 'http://localhost:3001';
   };
   
-  // Fetch closes and combined OHLCV data
-  const fetchCloses = async (sym, tf) => {
+  // Fetch closes and combined OHLCV data with rate limiting support
+  const fetchCloses = async (sym, tf, retryCount = 0) => {
     const proxyUrl = getApiUrl();
-    const url = `${proxyUrl}/api/stock/${sym}?interval=${tf}&range=1y`;
     
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    // Check if this interval requires aggregation
+    const aggregationConfig = AGGREGATION_MAP[tf];
+    const requestInterval = aggregationConfig ? aggregationConfig.base : tf;
     
-    const data = await resp.json();
-    if (!data || !data.chart || !data.chart.result || !data.chart.result[0]) {
-      throw new Error('Invalid data structure from proxy');
+    const url = `${proxyUrl}/api/stock/${sym}?interval=${requestInterval}`;
+    
+    try {
+      const resp = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const data = await resp.json();
+      
+      // Handle 429 Rate Limit Exceeded
+      if (resp.status === 429) {
+        const retryAfter = data.retryAfter || 60;
+        console.warn(`Rate limited. Retry after ${retryAfter} seconds`);
+        
+        setIsRateLimited(true);
+        setRetryCountdown(retryAfter);
+        showNotification(
+          `Server busy. Retrying in ${retryAfter} seconds...`,
+          'warning'
+        );
+        
+        // Countdown timer
+        const countdownInterval = setInterval(() => {
+          setRetryCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(countdownInterval);
+              setIsRateLimited(false);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+        
+        // Auto-retry after cooldown
+        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+        return fetchCloses(sym, tf, retryCount + 1);
+      }
+      
+      // Handle 503 All Sources Failed
+      if (resp.status === 503) {
+        console.error('All data sources failed:', data.details);
+        showNotification(
+          'Unable to fetch stock data. All services unavailable.',
+          'error'
+        );
+        throw new Error(data.error || 'All data sources failed');
+      }
+      
+      // Handle other HTTP errors
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}: ${data.error || 'Unknown error'}`);
+      }
+      
+      // Validate data structure
+      if (!data || !data.chart || !data.chart.result || !data.chart.result[0]) {
+        throw new Error('Invalid data structure from proxy');
+      }
+      
+      // Extract and store API metadata
+      if (data._meta) {
+        setApiSource(data._meta.source);
+        setQuotaInfo({
+          used: data._meta.quotaUsed,
+          limit: data._meta.quotaLimit,
+          resetTime: data._meta.quotaResetTime
+        });
+        console.log(`Data from: ${data._meta.source} | Quota: ${data._meta.quotaUsed}/${data._meta.quotaLimit || '∞'}`);
+      }
+    
+      const result = data.chart.result[0];
+      const meta = result.meta || {};
+      const timestamps = result.timestamp || [];
+      const quote = result.indicators?.quote?.[0] || {};
+      
+      const closes = quote.close || [];
+      const opens = quote.open || [];
+      const highs = quote.high || [];
+      const lows = quote.low || [];
+      const volumes = quote.volume || [];
+      
+      // Build combined OHLCV array
+      let combined = timestamps.map((ts, i) => ({
+        ts,
+        open: opens[i],
+        high: highs[i],
+        low: lows[i],
+        close: closes[i],
+        volume: volumes[i]
+      })).sort((a, b) => a.ts - b.ts);
+      
+      // Apply aggregation if needed
+      if (aggregationConfig) {
+        combined = aggregateCandles(combined, aggregationConfig.multiplier);
+      }
+      
+      // Extract sorted arrays
+      const sortedCloses = combined.map(p => p.close);
+      const sortedOpens = combined.map(p => p.open);
+      const sortedHighs = combined.map(p => p.high);
+      const sortedLows = combined.map(p => p.low);
+      const sortedVolumes = combined.map(p => p.volume);
+      
+      return {
+        closes: sortedCloses,
+        combined,
+        opens: sortedOpens,
+        highs: sortedHighs,
+        lows: sortedLows,
+        volumes: sortedVolumes,
+        source: data._meta?.source || 'unknown',
+        companyName: data._meta?.companyName || sym,
+        regularMarketPrice: meta.regularMarketPrice,
+        postMarketPrice: meta.postMarketPrice,
+        postMarketChangePercent: meta.postMarketChangePercent,
+        postMarketChange: meta.postMarketChange,
+        preMarketPrice: meta.preMarketPrice,
+        preMarketChangePercent: meta.preMarketChangePercent,
+        preMarketChange: meta.preMarketChange
+      };
+    } catch (err) {
+      // Network or parsing errors
+      if (err.message.includes('fetch') || err.message.includes('Failed to fetch')) {
+        showNotification('Connection error. Check your internet.', 'error');
+      }
+      throw err;
     }
-    
-    const result = data.chart.result[0];
-    const meta = result.meta || {};
-    const timestamps = result.timestamp || [];
-    const quote = result.indicators?.quote?.[0] || {};
-    
-    const closes = quote.close || [];
-    const opens = quote.open || [];
-    const highs = quote.high || [];
-    const lows = quote.low || [];
-    const volumes = quote.volume || [];
-    
-    // Build combined OHLCV array
-    const combined = timestamps.map((ts, i) => ({
-      ts,
-      open: opens[i],
-      high: highs[i],
-      low: lows[i],
-      close: closes[i],
-      volume: volumes[i]
-    })).sort((a, b) => a.ts - b.ts);
-    
-    // Extract sorted arrays
-    const sortedCloses = combined.map(p => p.close);
-    const sortedOpens = combined.map(p => p.open);
-    const sortedHighs = combined.map(p => p.high);
-    const sortedLows = combined.map(p => p.low);
-    const sortedVolumes = combined.map(p => p.volume);
-    
-    return {
-      closes: sortedCloses,
-      combined,
-      opens: sortedOpens,
-      highs: sortedHighs,
-      lows: sortedLows,
-      volumes: sortedVolumes,
-      regularMarketPrice: meta.regularMarketPrice,
-      postMarketPrice: meta.postMarketPrice,
-      postMarketChangePercent: meta.postMarketChangePercent,
-      postMarketChange: meta.postMarketChange,
-      preMarketPrice: meta.preMarketPrice,
-      preMarketChangePercent: meta.preMarketChangePercent,
-      preMarketChange: meta.preMarketChange
-    };
   };
   
   // Analyze stock
@@ -183,7 +334,7 @@ function App() {
     setRawInfo(null);
     
     try {
-      const { closes, combined, opens, highs, lows, volumes, regularMarketPrice, postMarketPrice, postMarketChangePercent, postMarketChange, preMarketPrice, preMarketChangePercent, preMarketChange } = await fetchCloses(symbol.toUpperCase().trim(), timeframe);
+      const { closes, combined, opens, highs, lows, volumes, source, companyName, regularMarketPrice, postMarketPrice, postMarketChangePercent, postMarketChange, preMarketPrice, preMarketChangePercent, preMarketChange } = await fetchCloses(symbol.toUpperCase().trim(), timeframe);
       
       if (!closes || closes.length < 50) {
         setError(`Insufficient data for ${symbol}: only ${closes?.length || 0} points`);
@@ -192,6 +343,7 @@ function App() {
       
       const params = INDICATOR_PARAMS[timeframe] || INDICATOR_PARAMS['1d'];
       const sentimentData = analyzeTechnicalSentiment(closes, params, volumes, highs, lows);
+      sentimentData.previousClose = closes.length > 1 ? closes[closes.length - 2] : null;
       sentimentData.regularMarketPrice = regularMarketPrice;
       sentimentData.postMarketPrice = postMarketPrice;
       sentimentData.postMarketChangePercent = postMarketChangePercent;
@@ -215,6 +367,9 @@ function App() {
       const bollingerBands = calculateBollingerBands(closes, 20, 2);
       const atrArr = (highs && lows) ? calculateATR(highs, lows, closes, 14) : null;
       
+      // Store company name
+      setCompanyName(companyName);
+      
       setAnalysis({
         ...sentimentData,
         closes,
@@ -231,7 +386,8 @@ function App() {
         obvArr,
         vwapArr,
         bollingerBands,
-        atrArr
+        atrArr,
+        source
       });
     } catch (err) {
       setError(err.message || 'Failed to fetch or analyze data');
@@ -269,7 +425,7 @@ function App() {
         
         while (retries >= 0 && !success && !stopScanRequested) {
           try {
-            const { closes, combined, opens, highs, lows, volumes } = await fetchCloses(sym, scanTimeframe);
+            const { closes, combined, opens, highs, lows, volumes, source, companyName, regularMarketPrice, postMarketPrice, postMarketChangePercent, postMarketChange, preMarketPrice, preMarketChangePercent, preMarketChange } = await fetchCloses(sym, scanTimeframe);
             
             if (!closes || closes.length < 50) {
               break; // Skip this symbol and move to next
@@ -286,7 +442,16 @@ function App() {
             
             resultData = {
               symbol: sym,
+              companyName: companyName,
               ...sentimentData,
+              previousClose: closes.length > 1 ? closes[closes.length - 2] : null,
+              regularMarketPrice,
+              postMarketPrice,
+              postMarketChangePercent,
+              postMarketChange,
+              preMarketPrice,
+              preMarketChangePercent,
+              preMarketChange,
               closes,
               timestamps: combined.map(p => p.ts),
               opens,
@@ -296,7 +461,8 @@ function App() {
               ema50Arr,
               ema200Arr,
               rsiArr,
-              macdSeries
+              macdSeries,
+              source
             };
             
             success = true;
@@ -675,6 +841,7 @@ function App() {
               sortDir={sortDir}
               setSortDir={setSortDir}
               formatPrice={formatPrice}
+              formatPriceWithChange={formatPriceWithChange}
               setActiveTab={setActiveTab}
               setSelectedScannerStocks={setSelectedScannerStocks}
               sentimentFilters={sentimentFilters}
@@ -692,6 +859,7 @@ function App() {
                 key={`scanner-detail-content-${stock.symbol}-${index}`}
                 stock={stock}
                 formatPrice={formatPrice}
+                formatPriceWithChange={formatPriceWithChange}
                 sentimentColor={sentimentColor}
                 scanTimeframe={scanTimeframe}
                 fetchCloses={fetchCloses}
@@ -726,6 +894,7 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
               Symbol
             </label>
             <input
+              data-testid="symbol-input"
               type="text"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
@@ -757,6 +926,7 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
               Timeframe
             </label>
             <select
+              data-testid="timeframe-dropdown"
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
               style={{
@@ -765,8 +935,8 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
                 fontSize: '1rem',
                 fontWeight: 600,
                 borderRadius: '0.75rem',
-                background: 'var(--card-bg)',
-                color: 'var(--text-primary)',
+                background: '#1e293b',
+                color: '#ffffff',
                 border: '2px solid var(--border)',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
@@ -789,12 +959,20 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
               <option value="15m">15 min</option>
               <option value="30m">30 min</option>
               <option value="60m">1 hour</option>
+              <option value="90m">90 min</option>
+              <option value="2h">2 hours</option>
+              <option value="4h">4 hours</option>
+              <option value="6h">6 hours</option>
+              <option value="12h">12 hours</option>
               <option value="1d">1 day</option>
+              <option value="5d">5 days</option>
               <option value="1wk">1 week</option>
               <option value="1mo">1 month</option>
+              <option value="3mo">3 months</option>
             </select>
           </div>
           <button
+            data-testid="analyze-button"
             onClick={analyzeStock}
             disabled={loading}
             style={{
@@ -830,7 +1008,7 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
               </span>
             ) : (
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🚀 Analyze
+                🚀 Analyze Stock
               </span>
             )}
           </button>
@@ -1360,7 +1538,7 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
 };
 
 // Scanner Tab Component  
-const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setScanResults, sortedResults, scanConcurrency, setScanConcurrency, scanRetries, setScanRetries, scanBackoffMs, setScanBackoffMs, scanTimeframe, setScanTimeframe, scanLimit, setScanLimit, scanTopMarketCaps, stopScanning, sortKey, setSortKey, sortDir, setSortDir, formatPrice, setActiveTab, setSelectedScannerStocks, sentimentFilters, setSentimentFilters, currentScanSymbol, setCurrentScanSymbol, setAvailableSymbols, sentimentRowBackground }) => {
+const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setScanResults, sortedResults, scanConcurrency, setScanConcurrency, scanRetries, setScanRetries, scanBackoffMs, setScanBackoffMs, scanTimeframe, setScanTimeframe, scanLimit, setScanLimit, scanTopMarketCaps, stopScanning, sortKey, setSortKey, sortDir, setSortDir, formatPrice, formatPriceWithChange, setActiveTab, setSelectedScannerStocks, sentimentFilters, setSentimentFilters, currentScanSymbol, setCurrentScanSymbol, setAvailableSymbols, sentimentRowBackground }) => {
   
   const handleSymbolClick = (row) => {
     // Extract last values from arrays for display
@@ -1377,6 +1555,14 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
       sentiment: row.sentiment,
       score: row.score,
       latestPrice: row.latestPrice,
+      previousClose: row.previousClose,
+      regularMarketPrice: row.regularMarketPrice,
+      postMarketPrice: row.postMarketPrice,
+      postMarketChangePercent: row.postMarketChangePercent,
+      postMarketChange: row.postMarketChange,
+      preMarketPrice: row.preMarketPrice,
+      preMarketChangePercent: row.preMarketChangePercent,
+      preMarketChange: row.preMarketChange,
       buyZone: row.buyZone,
       sellTargets: row.sellTargets,
       note: row.note,
@@ -1433,19 +1619,26 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>Timeframe:</label>
-            <select value={scanTimeframe} onChange={(e) => setScanTimeframe(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', color: 'var(--text)', border: '1px solid var(--border)' }}>
-              <option value="1m">1 min</option>
-              <option value="2m">2 min</option>
-              <option value="3m">3 min</option>
-              <option value="4m">4 min</option>
-              <option value="5m">5 min</option>
-              <option value="10m">10 min</option>
-              <option value="15m">15 min</option>
-              <option value="30m">30 min</option>
-              <option value="60m">1 hour</option>
-              <option value="1d">1 day</option>
-              <option value="1wk">1 week</option>
-              <option value="1mo">1 month</option>
+            <select data-testid="scanner-timeframe-dropdown" value={scanTimeframe} onChange={(e) => setScanTimeframe(e.target.value)} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: '#1e293b', color: '#ffffff', border: '1px solid rgba(100, 116, 139, 0.5)', fontWeight: 500, cursor: 'pointer' }}>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="1m">1 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="2m">2 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="3m">3 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="4m">4 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="5m">5 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="10m">10 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="15m">15 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="30m">30 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="60m">1 hour</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="90m">90 min</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="2h">2 hours</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="4h">4 hours</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="6h">6 hours</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="12h">12 hours</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="1d">1 day</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="5d">5 days</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="1wk">1 week</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="1mo">1 month</option>
+              <option style={{ background: '#1e293b', color: '#e2e8f0' }} value="3mo">3 months</option>
             </select>
           </div>
           <div>
@@ -1489,6 +1682,7 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
         
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
+            data-testid="start-scan-button"
             style={{
               padding: "0.75rem 2rem",
               borderRadius: "9999px",
@@ -1596,10 +1790,11 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
                   Sentiment {sortKey === 'sentiment' && (sortDir === 'asc' ? ' ' : ' ')}
                 </th>
                 <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600, cursor: 'pointer' }} onClick={() => { setSortKey('score'); setSortDir(sortKey === 'score' && sortDir === 'asc' ? 'desc' : 'asc'); }}>
-                  Score {sortKey === 'score' && (sortDir === 'asc' ? ' ' : ' ')}
+                  Score {sortKey === 'score' && (sortDir === 'asc' ? '▲' : '▼')}
                 </th>
                 <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600 }}>Buy Zone</th>
                 <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 600 }}>Targets</th>
+                <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 600 }}>Source</th>
               </tr>
             </thead>
             <tbody>
@@ -1613,20 +1808,21 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
                       {idx + 1}
                     </td>
                     <td style={{ padding: '1rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span
-                          style={{ 
-                            fontWeight: 600, 
-                            color: 'var(--primary)', 
-                            cursor: 'pointer',
-                            transition: 'opacity 0.2s'
-                          }}
-                          onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
-                          onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
-                          onClick={() => handleSymbolClick(row)}
-                        >
-                          {row.symbol}
-                        </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span
+                            style={{ 
+                              fontWeight: 600, 
+                              color: 'var(--primary)', 
+                              cursor: 'pointer',
+                              transition: 'opacity 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+                            onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                            onClick={() => handleSymbolClick(row)}
+                          >
+                            {row.symbol}
+                          </span>
                         <a 
                           href={`https://finance.yahoo.com/quote/${row.symbol}`}
                           target="_blank"
@@ -1663,9 +1859,17 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
                         >
                           Z
                         </a>
+                        </div>
+                        {row.companyName && row.companyName !== row.symbol && (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--muted)', fontWeight: 400 }}>
+                            {row.companyName}
+                          </div>
+                        )}
                       </div>
                     </td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>{row.latestPrice ? formatPrice(row.latestPrice) : row.error || '-'}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 600 }}>
+                      {row.latestPrice ? formatPrice(row.latestPrice) : row.error || '-'}
+                    </td>
                     <td style={{ padding: '1rem', color: row.sentiment === 'bullish' ? 'var(--accent)' : row.sentiment === 'bearish' ? 'var(--danger)' : 'var(--muted)' }}>
                       {row.sentiment || '-'}
                     </td>
@@ -1675,6 +1879,20 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
                     </td>
                     <td style={{ padding: '1rem', textAlign: 'right', fontSize: '0.85rem' }}>
                       {row.sellTargets && row.sellTargets.length > 0 ? row.sellTargets.map(t => formatPrice(t)).join(', ') : '-'}
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <span style={{
+                        padding: '0.35rem 0.6rem',
+                        borderRadius: '0.35rem',
+                        background: row.source === 'yahoo' ? 'rgba(147, 51, 234, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                        color: row.source === 'yahoo' ? '#9333ea' : '#3b82f6',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        border: `1px solid ${row.source === 'yahoo' ? '#9333ea' : '#3b82f6'}33`
+                      }}>
+                        {row.source || 'unknown'}
+                      </span>
                     </td>
                   </tr>
                 );
@@ -1688,7 +1906,7 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
 };
 
 // Scanner Detail Tab Component
-const ScannerDetailTab = ({ stock, formatPrice, sentimentColor, scanTimeframe, fetchCloses }) => {
+const ScannerDetailTab = ({ stock, formatPrice, formatPriceWithChange, sentimentColor, scanTimeframe, fetchCloses }) => {
   const [detailTf, setDetailTf] = React.useState(scanTimeframe || '1d');
   const [viewStock, setViewStock] = React.useState(stock);
   const [loadingTf, setLoadingTf] = React.useState(false);
@@ -1834,9 +2052,25 @@ const ScannerDetailTab = ({ stock, formatPrice, sentimentColor, scanTimeframe, f
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-              <h2 style={{ margin: 0, fontSize: '1.8rem', color: 'var(--primary)' }}>
-                {v.symbol}
-              </h2>
+              <a 
+                href={`https://finance.yahoo.com/quote/${v.symbol}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none' }}
+              >
+                <h2 style={{ 
+                  margin: 0, 
+                  fontSize: '1.8rem', 
+                  color: 'var(--primary)',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+                onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                >
+                  {v.companyName && v.companyName !== v.symbol ? `${v.companyName} (${v.symbol})` : v.symbol}
+                </h2>
+              </a>
               <a 
                 href={`https://finance.yahoo.com/quote/${v.symbol}`}
                 target="_blank"
@@ -1878,7 +2112,7 @@ const ScannerDetailTab = ({ stock, formatPrice, sentimentColor, scanTimeframe, f
                 aria-label="timeframe"
                 value={detailTf}
                 onChange={(e) => setDetailTf(e.target.value)}
-                style={{ padding: '0.35rem 0.6rem', borderRadius: '9999px', border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--text)', fontSize: '0.9rem' }}
+                style={{ padding: '0.35rem 0.6rem', borderRadius: '9999px', border: '1px solid var(--border)', background: '#1e293b', color: '#ffffff', fontSize: '0.9rem', fontWeight: 500 }}
               >
                 <option value="1m">1m</option>
                 <option value="2m">2m</option>
@@ -1889,14 +2123,88 @@ const ScannerDetailTab = ({ stock, formatPrice, sentimentColor, scanTimeframe, f
                 <option value="15m">15m</option>
                 <option value="30m">30m</option>
                 <option value="60m">1h</option>
+                <option value="90m">90m</option>
+                <option value="2h">2h</option>
+                <option value="4h">4h</option>
+                <option value="6h">6h</option>
+                <option value="12h">12h</option>
                 <option value="1d">1d</option>
+                <option value="5d">5d</option>
                 <option value="1wk">1wk</option>
                 <option value="1mo">1mo</option>
+                <option value="3mo">3mo</option>
               </select>
               {loadingTf && <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>Loading…</span>}
             </div>
-            <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text)' }}>
-              {v.latestPrice != null ? formatPrice(v.latestPrice) : '-'}
+            <div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.35rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Last Price
+              </div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: '0.5rem' }}>
+                At close: {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} EST
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text)' }}>
+                  {v.latestPrice != null ? formatPrice(v.latestPrice) : '-'}
+                </div>
+                {v.latestPrice && v.previousClose && (() => {
+                  const info = formatPriceWithChange(v.latestPrice, v.previousClose);
+                  return info.change ? (
+                    <div style={{ 
+                      fontSize: '1rem',
+                      color: info.isPositive ? '#10b981' : '#ef4444',
+                      fontWeight: 600
+                    }}>
+                      {info.isPositive ? '+' : '-'}{info.change} ({info.isPositive ? '+' : '-'}{info.changePercent}%)
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+              
+              {/* After Hours / Pre-Market Data */}
+              {v.postMarketPrice && (
+                <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>
+                    🌙 After hours: {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} EST
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text)' }}>
+                      {formatPrice(v.postMarketPrice)}
+                    </div>
+                    {v.postMarketChange != null && (
+                      <div style={{ 
+                        fontSize: '0.9rem',
+                        color: v.postMarketChange >= 0 ? '#10b981' : '#ef4444',
+                        fontWeight: 600
+                      }}>
+                        {v.postMarketChange >= 0 ? '+' : ''}{formatPrice(v.postMarketChange)} ({v.postMarketChange >= 0 ? '+' : ''}{v.postMarketChangePercent?.toFixed(2)}%)
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {v.preMarketPrice && (
+                <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>
+                    🌅 Pre-market: {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} EST
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text)' }}>
+                      {formatPrice(v.preMarketPrice)}
+                    </div>
+                    {v.preMarketChange != null && (
+                      <div style={{ 
+                        fontSize: '0.9rem',
+                        color: v.preMarketChange >= 0 ? '#10b981' : '#ef4444',
+                        fontWeight: 600
+                      }}>
+                        {v.preMarketChange >= 0 ? '+' : ''}{formatPrice(v.preMarketChange)} ({v.preMarketChange >= 0 ? '+' : ''}{v.preMarketChangePercent?.toFixed(2)}%)
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <div style={{
@@ -2548,7 +2856,26 @@ const CustomSVGChart = ({
         {/* Symbol title with clickable link */}
         {symbol && (
           <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 600, color: 'var(--primary)' }}>{symbol}</h3>
+            <a 
+              href={`https://finance.yahoo.com/quote/${symbol}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'none' }}
+            >
+              <h3 style={{ 
+                margin: 0, 
+                fontSize: '1.4rem', 
+                fontWeight: 600, 
+                color: 'var(--primary)',
+                cursor: 'pointer',
+                transition: 'opacity 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
+              onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                {companyName && companyName !== symbol ? `${companyName} (${symbol})` : symbol}
+              </h3>
+            </a>
             <a 
               href={`https://finance.yahoo.com/quote/${symbol}`}
               target="_blank"

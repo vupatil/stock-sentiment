@@ -83,33 +83,39 @@ describe('Stock Sentiment App - Fixed Tests', () => {
     });
   });
 
-  describe('Aggregation Logic Integration', () => {
-    it('requests base interval for 3m and aggregates data', async () => {
-      // Mock successful API response with 1m data
+  describe('Timeframe Direct Request', () => {
+    it('requests actual 3m interval directly (no aggregation)', async () => {
+      // Mock successful API response with 3m data
       const mockData = {
         chart: {
           result: [{
-            timestamp: [1000, 1060, 1120, 1180, 1240, 1300],
+            timestamp: [1000, 1180, 1360],
             indicators: {
               quote: [{
-                open: [100, 103, 107, 108, 110, 114],
-                high: [105, 108, 110, 112, 115, 116],
-                low: [99, 102, 106, 107, 109, 113],
-                close: [103, 107, 108, 110, 114, 115],
-                volume: [1000, 1500, 2000, 1200, 1800, 1600]
+                open: [100, 103, 107],
+                high: [105, 108, 110],
+                low: [99, 102, 106],
+                close: [103, 107, 108],
+                volume: [3000, 4500, 5000]
               }]
             },
             meta: {
-              regularMarketPrice: 115,
+              regularMarketPrice: 108,
               previousClose: 100
             }
           }]
         },
-        _meta: { source: 'yahoo' }
+        _meta: { source: 'polygon' }
       };
 
       global.fetch.mockResolvedValueOnce({
         ok: true,
+        headers: {
+          get: (header) => {
+            if (header === 'content-type') return 'application/json';
+            return null;
+          }
+        },
         json: async () => mockData
       });
 
@@ -124,39 +130,45 @@ describe('Stock Sentiment App - Fixed Tests', () => {
       fireEvent.click(analyzeButton);
       
       await waitFor(() => {
-        // Verify fetch was called with 1m (base interval)
+        // Verify fetch was called with actual 3m interval (no aggregation)
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('interval=1m'),
+          expect.stringContaining('interval=3m'),
           expect.any(Object)
         );
       });
     });
 
-    it('requests base interval for 4h and aggregates data', async () => {
+    it('requests actual 4h interval directly (no aggregation)', async () => {
       const mockData = {
         chart: {
           result: [{
-            timestamp: [1000, 4600, 8200, 11800],
+            timestamp: [1000, 15400, 29800],
             indicators: {
               quote: [{
-                open: [100, 103, 107, 108],
-                high: [105, 108, 110, 112],
-                low: [99, 102, 106, 107],
-                close: [103, 107, 108, 110],
-                volume: [10000, 12000, 15000, 11000]
+                open: [100, 103, 107],
+                high: [105, 108, 110],
+                low: [99, 102, 106],
+                close: [103, 107, 108],
+                volume: [40000, 48000, 52000]
               }]
             },
             meta: {
-              regularMarketPrice: 110,
+              regularMarketPrice: 108,
               previousClose: 100
             }
           }]
         },
-        _meta: { source: 'yahoo' }
+        _meta: { source: 'polygon' }
       };
 
       global.fetch.mockResolvedValueOnce({
         ok: true,
+        headers: {
+          get: (header) => {
+            if (header === 'content-type') return 'application/json';
+            return null;
+          }
+        },
         json: async () => mockData
       });
 
@@ -170,9 +182,9 @@ describe('Stock Sentiment App - Fixed Tests', () => {
       fireEvent.click(analyzeButton);
       
       await waitFor(() => {
-        // Verify fetch was called with 1h (base interval)
+        // Verify fetch was called with actual 4h interval (no aggregation)
         expect(global.fetch).toHaveBeenCalledWith(
-          expect.stringContaining('interval=1h'),
+          expect.stringContaining('interval=4h'),
           expect.any(Object)
         );
       });

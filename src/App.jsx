@@ -44,39 +44,8 @@ const INDICATOR_PARAMS = {
   '3mo': { emaShort: 6, emaLong: 24, rsi: 14, macdFast: 12, macdSlow: 26, macdSignal: 9, minBars: 30 }
 };
 
-// Aggregation map for calculated intervals
-const AGGREGATION_MAP = {
-  '3m': { base: '1m', multiplier: 3 },
-  '4m': { base: '2m', multiplier: 2 },
-  '10m': { base: '5m', multiplier: 2 },
-  '2h': { base: '1h', multiplier: 2 },
-  '4h': { base: '1h', multiplier: 4 },
-  '6h': { base: '1h', multiplier: 6 },
-  '12h': { base: '1h', multiplier: 12 }
-};
-
-// Aggregate candles helper function
-function aggregateCandles(candles, multiplier) {
-  const aggregated = [];
-  
-  for (let i = 0; i < candles.length; i += multiplier) {
-    const chunk = candles.slice(i, i + multiplier);
-    
-    // Skip incomplete chunks
-    if (chunk.length < multiplier) break;
-    
-    aggregated.push({
-      ts: chunk[0].ts,
-      open: chunk[0].open,
-      high: Math.max(...chunk.map(c => c.high)),
-      low: Math.min(...chunk.map(c => c.low)),
-      close: chunk[chunk.length - 1].close,
-      volume: chunk.reduce((sum, c) => sum + c.volume, 0)
-    });
-  }
-  
-  return aggregated;
-};
+// Note: All timeframes are now sent directly to the proxy server
+// No client-side aggregation needed since we're not limited by Yahoo Finance API
 
 function App() {
   // Main state
@@ -104,6 +73,7 @@ function App() {
   const [sentimentFilters, setSentimentFilters] = useState({ bullish: true, bearish: false, neutral: false });
   const [currentScanSymbol, setCurrentScanSymbol] = useState('');
   const [availableSymbols, setAvailableSymbols] = useState(FALLBACK_TICKERS);
+  const [scanFailures, setScanFailures] = useState([]);
   
   // API metadata and rate limiting state
   const [apiSource, setApiSource] = useState(null);
@@ -111,6 +81,7 @@ function App() {
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [retryCountdown, setRetryCountdown] = useState(0);
   const [notification, setNotification] = useState(null);
+  const stopScanRequestedRef = React.useRef(false);
   
   // Helper: show notification
   const showNotification = (message, type = 'info') => {
@@ -188,19 +159,36 @@ function App() {
   const fetchCloses = async (sym, tf, retryCount = 0) => {
     const proxyUrl = getApiUrl();
     
-    // Check if this interval requires aggregation
-    const aggregationConfig = AGGREGATION_MAP[tf];
-    const requestInterval = aggregationConfig ? aggregationConfig.base : tf;
-    
-    const url = `${proxyUrl}/api/stock/${sym}?interval=${requestInterval}`;
+    // Send the timeframe directly to proxy (no aggregation needed)
+    const url = `${proxyUrl}/api/stock/${sym}?interval=${tf}&includePrePost=true`;
     
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
       const resp = await fetch(url, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal
       });
       
-      const data = await resp.json();
+      clearTimeout(timeoutId);
+      
+      // Validate content type before parsing
+      const contentType = resp.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error(`Server returned ${contentType}, expected JSON`);
+        throw new Error(`Server returned invalid content type: ${contentType || 'none'}`);
+      }
+      
+      let data;
+      try {
+        data = await resp.json();
+      } catch (parseErr) {
+        console.error('JSON parse error:', parseErr);
+        showNotification('Server returned invalid data format', 'error');
+        throw new Error('Invalid JSON response from server');
+      }
       
       // Handle 429 Rate Limit Exceeded
       if (resp.status === 429) {
@@ -231,19 +219,63 @@ function App() {
         return fetchCloses(sym, tf, retryCount + 1);
       }
       
-      // Handle 503 All Sources Failed
+      // Handle 503 Service Unavailable
       if (resp.status === 503) {
+        // Check if it's a data refresh scenario (server changed from 202 to 503)
+        if (data.status === 'refreshing' || data.status === 'queued') {
+          const retryAfter = data.retryAfter || parseInt(resp.headers.get('Retry-After')) || 15;
+          const message = data.message || `Data for ${sym} is being updated. Please retry in 10-30 seconds.`;
+          console.warn(`Data refreshing for ${sym}. Retry after ${retryAfter} seconds`);
+          
+          showNotification(
+            message,
+            'warning'
+          );
+          
+          throw new Error(message);
+        }
+        
+        // Otherwise it's a "all sources failed" scenario
         console.error('All data sources failed:', data.details);
+        const errorMsg = data.message || data.error || 'All data sources failed';
+        const detailsMsg = data.details ? `\n${JSON.stringify(data.details, null, 2)}` : '';
         showNotification(
-          'Unable to fetch stock data. All services unavailable.',
+          errorMsg,
           'error'
         );
-        throw new Error(data.error || 'All data sources failed');
+        throw new Error(`${errorMsg}${detailsMsg}`);
+      }
+      
+      // Handle 404 Not Found (invalid or inactive symbol)
+      if (resp.status === 404) {
+        const errorMsg = data.message || data.error || `Symbol ${sym} not found`;
+        showNotification(
+          `${errorMsg}. Please check the symbol and try again.`,
+          'error'
+        );
+        throw new Error(errorMsg);
+      }
+      
+      // Handle 500 Internal Server Error
+      if (resp.status === 500) {
+        const errorMsg = data.message || data.error || 'Internal server error';
+        console.error('Server error:', data);
+        showNotification(
+          `Server error: ${errorMsg}. Please try again later.`,
+          'error'
+        );
+        throw new Error(errorMsg);
       }
       
       // Handle other HTTP errors
       if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status}: ${data.error || 'Unknown error'}`);
+        const errorMsg = data.message || data.error || `HTTP ${resp.status} error`;
+        const detailsMsg = data.details ? ` - ${JSON.stringify(data.details)}` : '';
+        showNotification(
+          errorMsg,
+          'error'
+        );
+        throw new Error(`${errorMsg}${detailsMsg}`);
       }
       
       // Validate data structure
@@ -283,10 +315,8 @@ function App() {
         volume: volumes[i]
       })).sort((a, b) => a.ts - b.ts);
       
-      // Apply aggregation if needed
-      if (aggregationConfig) {
-        combined = aggregateCandles(combined, aggregationConfig.multiplier);
-      }
+      // Data comes directly from proxy at the requested timeframe
+      // No client-side aggregation needed
       
       // Extract sorted arrays
       const sortedCloses = combined.map(p => p.close);
@@ -313,10 +343,19 @@ function App() {
         preMarketChange: meta.preMarketChange
       };
     } catch (err) {
+      // Handle timeout
+      if (err.name === 'AbortError') {
+        showNotification('Request timeout - server is not responding', 'error');
+        throw new Error('Request timeout after 30 seconds');
+      }
+      
       // Network or parsing errors
       if (err.message.includes('fetch') || err.message.includes('Failed to fetch')) {
-        showNotification('Connection error. Check your internet.', 'error');
+        showNotification('Connection error. Check your internet or proxy server.', 'error');
+        throw new Error(`Network error: Unable to connect to proxy server at ${proxyUrl}`);
       }
+      
+      // Re-throw with original error message
       throw err;
     }
   };
@@ -390,29 +429,32 @@ function App() {
         source
       });
     } catch (err) {
-      setError(err.message || 'Failed to fetch or analyze data');
+      // Display the actual error message from the server
+      const errorMessage = err.message || 'Failed to fetch or analyze data';
+      setError(errorMessage);
+      console.error('Analysis error:', err);
     } finally {
       setLoading(false);
     }
   };
   
   // Scanner logic with worker pool pattern
-  let stopScanRequested = false;
-  
   const scanTopMarketCaps = async () => {
     setScanning(true);
-    stopScanRequested = false;
+    stopScanRequestedRef.current = false;
     setScanProgress({ done: 0, total: scanLimit });
     setScanResults([]);
+    setScanFailures([]);
     setCurrentScanSymbol('');
     
     const results = [];
+    const failures = [];
     const processedSymbols = new Set(); // Track processed symbols to avoid duplicates
     const queue = [...availableSymbols];
     
     // Worker function
     const worker = async () => {
-      while (queue.length > 0 && !stopScanRequested && results.length < scanLimit) {
+      while (queue.length > 0 && !stopScanRequestedRef.current && results.length < scanLimit) {
         const sym = queue.shift();
         if (!sym || processedSymbols.has(sym)) continue;
         
@@ -423,7 +465,7 @@ function App() {
         let success = false;
         let resultData = null;
         
-        while (retries >= 0 && !success && !stopScanRequested) {
+        while (retries >= 0 && !success && !stopScanRequestedRef.current) {
           try {
             const { closes, combined, opens, highs, lows, volumes, source, companyName, regularMarketPrice, postMarketPrice, postMarketChangePercent, postMarketChange, preMarketPrice, preMarketChangePercent, preMarketChange } = await fetchCloses(sym, scanTimeframe);
             
@@ -468,6 +510,17 @@ function App() {
             success = true;
           } catch (err) {
             retries--;
+            console.warn(`Failed to scan ${sym} (${scanRetries - retries}/${scanRetries}):`, err.message);
+            
+            // If out of retries, track the failure
+            if (retries < 0) {
+              failures.push({
+                symbol: sym,
+                error: err.message,
+                timestamp: new Date().toISOString()
+              });
+            }
+            
             if (retries >= 0) {
               await new Promise(resolve => setTimeout(resolve, scanBackoffMs));
             }
@@ -476,7 +529,7 @@ function App() {
         
         if (success && resultData) {
           // Double-check we haven't exceeded the limit (safety check)
-          if (results.length >= scanLimit || stopScanRequested) {
+          if (results.length >= scanLimit || stopScanRequestedRef.current) {
             break;
           }
           
@@ -501,12 +554,28 @@ function App() {
     const workers = Array.from({ length: scanConcurrency }, () => worker());
     await Promise.all(workers);
     
+    // Store failures and show summary
+    setScanFailures(failures);
+    
+    if (failures.length > 0) {
+      console.log('Scanner failures:', failures);
+      showNotification(
+        `Scan complete: ${results.length} succeeded, ${failures.length} failed`,
+        failures.length > results.length ? 'error' : 'warning'
+      );
+    } else if (results.length > 0) {
+      showNotification(
+        `Scan complete: ${results.length} symbols analyzed successfully`,
+        'info'
+      );
+    }
+    
     setScanning(false);
     setCurrentScanSymbol('');
   };
   
   const stopScanning = () => {
-    stopScanRequested = true;
+    stopScanRequestedRef.current = true;
     setScanning(false);
     setCurrentScanSymbol('');
   };
@@ -833,7 +902,7 @@ function App() {
               scanTimeframe={scanTimeframe}
               setScanTimeframe={setScanTimeframe}
               scanLimit={scanLimit}
-              setScanLimit={scanLimit}
+              setScanLimit={setScanLimit}
               scanTopMarketCaps={scanTopMarketCaps}
               stopScanning={stopScanning}
               sortKey={sortKey}
@@ -1527,7 +1596,7 @@ const AnalyzeTab = ({ symbol, setSymbol, timeframe, setTimeframe, loading, error
               color: "var(--muted)",
             }}
           >
-            <summary>Debug: Yahoo meta / error info</summary>
+            <summary>Debug: Server response metadata</summary>
             <pre style={{ whiteSpace: "pre-wrap" }}>
               {JSON.stringify(rawInfo, null, 2)}
             </pre>
@@ -1643,7 +1712,7 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '0.35rem' }}>Results Limit:</label>
-            <input type='number' min='1' max='100' value={scanLimit} onChange={(e) => setScanLimit(Math.max(1, Math.min(100, Number(e.target.value))))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
+            <input type='number' min='1' max='1000' value={scanLimit} onChange={(e) => setScanLimit(Math.max(1, Math.min(1000, Number(e.target.value))))} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.5rem', background: 'var(--card-bg)', color: 'var(--text)', border: '1px solid var(--border)' }} />
           </div>
         </div>
         
@@ -1824,24 +1893,6 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
                             {row.symbol}
                           </span>
                         <a 
-                          href={`https://finance.yahoo.com/quote/${row.symbol}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ 
-                            fontSize: '0.75rem', 
-                            color: 'var(--accent)', 
-                            textDecoration: 'none',
-                            opacity: 0.7,
-                            transition: 'opacity 0.2s'
-                          }}
-                          onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
-                          onMouseOut={(e) => e.currentTarget.style.opacity = '0.7'}
-                          onClick={(e) => e.stopPropagation()}
-                          title="View on Yahoo Finance"
-                        >
-                          Y
-                        </a>
-                        <a 
                           href={`https://www.zacks.com/stock/quote/${row.symbol}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -1884,12 +1935,12 @@ const ScannerTab = ({ scanning, scanProgress, setScanProgress, scanResults, setS
                       <span style={{
                         padding: '0.35rem 0.6rem',
                         borderRadius: '0.35rem',
-                        background: row.source === 'yahoo' ? 'rgba(147, 51, 234, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                        color: row.source === 'yahoo' ? '#9333ea' : '#3b82f6',
+                        background: 'rgba(59, 130, 246, 0.15)',
+                        color: '#3b82f6',
                         fontSize: '0.75rem',
                         fontWeight: '600',
                         textTransform: 'uppercase',
-                        border: `1px solid ${row.source === 'yahoo' ? '#9333ea' : '#3b82f6'}33`
+                        border: '1px solid #3b82f633'
                       }}>
                         {row.source || 'unknown'}
                       </span>
@@ -2052,43 +2103,13 @@ const ScannerDetailTab = ({ stock, formatPrice, formatPriceWithChange, sentiment
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-              <a 
-                href={`https://finance.yahoo.com/quote/${v.symbol}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: 'none' }}
-              >
-                <h2 style={{ 
-                  margin: 0, 
-                  fontSize: '1.8rem', 
-                  color: 'var(--primary)',
-                  cursor: 'pointer',
-                  transition: 'opacity 0.2s'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
-                onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
-                >
-                  {v.companyName && v.companyName !== v.symbol ? `${v.companyName} (${v.symbol})` : v.symbol}
-                </h2>
-              </a>
-              <a 
-                href={`https://finance.yahoo.com/quote/${v.symbol}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ 
-                  fontSize: '0.9rem', 
-                  color: 'var(--accent)', 
-                  textDecoration: 'none',
-                  padding: '0.35rem 0.75rem',
-                  borderRadius: '0.35rem',
-                  border: '1px solid var(--accent)',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = 'white'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--accent)'; }}
-              >
-                Yahoo Finance ↗
-              </a>
+              <h2 style={{ 
+                margin: 0, 
+                fontSize: '1.8rem', 
+                color: 'var(--primary)'
+              }}>
+                {v.companyName && v.companyName !== v.symbol ? `${v.companyName} (${v.symbol})` : v.symbol}
+              </h2>
               <a 
                 href={`https://www.zacks.com/stock/quote/${v.symbol}`}
                 target="_blank"
@@ -2853,47 +2874,17 @@ const CustomSVGChart = ({
           </div>
         </div>
         
-        {/* Symbol title with clickable link */}
+        {/* Symbol title */}
         {symbol && (
           <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <a 
-              href={`https://finance.yahoo.com/quote/${symbol}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: 'none' }}
-            >
-              <h3 style={{ 
-                margin: 0, 
-                fontSize: '1.4rem', 
-                fontWeight: 600, 
-                color: 'var(--primary)',
-                cursor: 'pointer',
-                transition: 'opacity 0.2s'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.opacity = '0.7'}
-              onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
-              >
-                {companyName && companyName !== symbol ? `${companyName} (${symbol})` : symbol}
-              </h3>
-            </a>
-            <a 
-              href={`https://finance.yahoo.com/quote/${symbol}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ 
-                fontSize: '0.85rem', 
-                color: 'var(--accent)', 
-                textDecoration: 'none',
-                padding: '0.25rem 0.5rem',
-                borderRadius: '0.25rem',
-                border: '1px solid var(--accent)',
-                transition: 'all 0.2s'
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = 'white'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--accent)'; }}
-            >
-              Yahoo ↗
-            </a>
+            <h3 style={{ 
+              margin: 0, 
+              fontSize: '1.4rem', 
+              fontWeight: 600, 
+              color: 'var(--primary)'
+            }}>
+              {companyName && companyName !== symbol ? `${companyName} (${symbol})` : symbol}
+            </h3>
             <a 
               href={`https://www.zacks.com/stock/quote/${symbol}`}
               target="_blank"
